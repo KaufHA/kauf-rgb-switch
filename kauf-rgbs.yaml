@@ -6,7 +6,7 @@ substitutions:
   # in your local yaml file by redefining them.
   #
   # packages:
-  #   kauf.rgbsw: github://bkaufx/kauf-rgb-switch/kauf-rgbs.yaml
+  #   kauf.rgbsw: github://KaufHA/kauf-rgb-switch/kauf-rgbs.yaml
   #
 
   name: kauf-rgbsw             # **** CHANGE DEVICE NAME TO SOMETHING UNIQUE PER DEVICE.  RENAME YAML FILE TO SAME NAME.    ****
@@ -82,7 +82,7 @@ esphome:
 external_components:
   - source:
       type: git
-      url: https://github.com/bkaufx/common
+      url: https://github.com/KaufHA/common
     refresh: 0s
 
 
