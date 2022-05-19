@@ -51,13 +51,13 @@ If using the precompiled binary or kauf-rgbs.yaml as a package in the ESPHome da
 
 ## Configuration Entities
 
-***Big Off Value*** light entity - Allows setting of a light state, which will automatically be copied to the *Big Light* light entity when the switch turns off.
+***Big Off Value*** light entity - Allows setting of a light state that will automatically be copied to the *Big Light* light entity when the main switch turns off.  If this configuration light entity is turned off, then the big light will turn off when the main switch turns off.  To disable automation of the big light when the main switch turns off, turn this configuration light entity on and then select the Disabled effect.
 
-***Big On Value*** light entity - Allows setting of a light state, which will automatically be copied to the *Big Light* light entity when the switch turns on.
+***Big On Value*** light entity - Allows setting of a light state that will automatically be copied to the *Big Light* light entity when the main switch turns on.  If this configuration light entity is turned off, then the big light will turn off when the main switch turns on.  To disable automation of the big light when the main switch turns on, turn this configuration light entity on and then select the Disabled effect.
 
-***Small Off Value*** light entity - Allows setting of a light state, which will automatically be copied to the *Small Light* light entity when the switch turns off.
+***Small Off Value*** light entity - Allows setting of a light state that will automatically be copied to the *Small Light* light entity when the main switch turns off.  If this configuration light entity is turned off, then the small light will turn off when the main switch turns off.  To disable automation of the small light when the main switch turns off, turn this configuration light entity on and then select the Disabled effect.
 
-***Small On Value*** light entity - Allows setting of a light state, which will automatically be copied to the *Small Light* light entity when the switch turns on.
+***Small On Value*** light entity - Allows setting of a light state that will automatically be copied to the *Small Light* light entity when the main switch turns on.  If this configuration light entity is turned off, then the small light will turn off when the main switch turns on.  To disable automation of the small light when the main switch turns on, turn this configuration light entity on and then select the Disabled effect.
 
 ***Disable Button*** switch entity - Pressing the button will not toggle the main switch or relay if this configuration switch is turned on.  The button binary sensor will still show when the button is pressed so the button can be used for a different automation.
 
