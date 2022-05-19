@@ -415,9 +415,6 @@ select:
 # https://esphome.io/guides/automations.html#script-component
 script:
 
-  - id: script_relay_config
-    then:
-
   - id: blink_status_led
     mode: queued
     then:
