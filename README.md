@@ -81,3 +81,9 @@ When using kauf-rgbs.yaml as a package in the ESPHome dashboard, you can configu
 ***sub_on_turn_off*** - Defines a script to be executed when the switch is turned off.
 
 ***sub_blink_check*** - Defines a script that, if running, stops the error light from blinking.
+
+
+# Links
+- [Purchase switches on Amazon](https://www.amazon.com/dp/B0B1CKWV7K)
+- [KAUF YouTube Channel](https://www.youtube.com/channel/UCjgziIA-lXmcqcMIm8HDnYg)
+- [KaufHA Website](https://kaufha.com/srf10)
