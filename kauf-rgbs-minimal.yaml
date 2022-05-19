@@ -1,0 +1,141 @@
+# https://esphome.io/guides/configuration-types.html#substitutions
+substitutions:
+
+  name: kauf-rgbsw             # **** CHANGE DEVICE NAME TO SOMETHING UNIQUE PER DEVICE.  RENAME YAML FILE TO SAME NAME.    ****
+                               # **** USE DASHES (-) INSTEAD OF SPACES OR UNDERSCORE (_).  USE ONLY LOWER CASE LETTERS.     ****
+  friendly_name: Kauf RGB Sw   # **** CHANGE FRIENDLY NAME TO SOMETHING UNIQUE PER DEVICE                                   ****
+
+  # https://esphome.io/components/esphome.html#esphome-creators-project
+  project_name: Kauf.RGBSw
+  project_ver_num: "1.30"
+  project_ver_let: m
+
+
+# https://esphome.io/components/esp8266.html
+esp8266:
+  board: esp01_1m
+  restore_from_flash: true
+  early_pin_init: false
+
+
+# https://esphome.io/components/esphome.html
+esphome:
+  name: $name
+  project:
+    name: $project_name
+    version: $project_ver_num($project_ver_let)
+
+
+# https://esphome.io/components/wifi.html
+wifi:
+
+  # **** ENTER WI-FI CREDENTIALS HERE, USING SECRETS.YAML RECOMMENDED ****
+  ssid: initial_ap            # !secret wifi_ssid
+  password: asdfasdfasdfasdf  # !secret wifi_password
+
+  # default is 20, 17 is recommended.
+  output_power: 17
+
+  # using fast_connect as default since it is required for hidden networks.
+  fast_connect: true
+
+
+# https://esphome.io/components/logger.html
+logger:
+
+
+# https://esphome.io/components/api.html
+api:
+
+
+# https://esphome.io/components/ota.html
+ota:
+
+
+# https://esphome.io/components/web_server.html
+web_server:
+
+
+# https://esphome.io/components/binary_sensor/index.html
+binary_sensor:
+
+    # https://esphome.io/components/binary_sensor/gpio.html
+  - platform: gpio
+    id: main_button
+    name: $friendly_name Button
+    pin:
+      number: GPIO13
+      mode:
+        input: true
+        pullup: true
+      inverted: true
+    on_press:
+        then:
+          - switch.toggle: relay
+
+
+# https://esphome.io/components/switch/index.html
+switch:
+  - platform: gpio
+    id: relay
+    pin: GPIO15
+    name: $friendly_name
+
+
+# PWM outputs for each LED channel
+# https://esphome.io/components/output/esp8266_pwm.html
+output:
+
+    # small light pwm
+  - platform: esp8266_pwm
+    pin: GPIO0
+    frequency: 250 Hz
+    id: pwm1_red
+    inverted: true
+  - platform: esp8266_pwm
+    pin: GPIO12
+    frequency: 250 Hz
+    id: pwm1_green
+    inverted: true
+  - platform: esp8266_pwm
+    pin: GPIO2
+    frequency: 250 Hz
+    id: pwm1_blue
+    inverted: true
+
+    # big light pwm
+  - platform: esp8266_pwm
+    pin: GPIO14
+    frequency: 250 Hz
+    id: pwm2_red
+  - platform: esp8266_pwm
+    pin: GPIO5
+    frequency: 250 Hz
+    id: pwm2_green
+    max_power: .4
+  - platform: esp8266_pwm
+    pin: GPIO4
+    frequency: 250 Hz
+    id: pwm2_blue
+    max_power: .35
+
+
+# https://esphome.io/components/light/index.html
+# https://esphome.io/components/light/rgb.html
+light:
+
+  - platform: rgb
+    name: $friendly_name Small Light
+    id: kauf_light1
+    red: pwm1_red
+    green: pwm1_green
+    blue: pwm1_blue
+    default_transition_length: 333ms
+
+  - platform: rgb
+    name: $friendly_name Big Light
+    id: kauf_light2
+    red: pwm2_red
+    green: pwm2_green
+    blue: pwm2_blue
+    default_transition_length: 333ms
