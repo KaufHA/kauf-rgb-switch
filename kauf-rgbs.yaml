@@ -9,7 +9,7 @@ substitutions:
   #   kauf.rgbsw: github://KaufHA/kauf-rgb-switch/kauf-rgbs.yaml
   #
 
-  name: kauf-rgbs              # **** CHANGE DEVICE NAME TO SOMETHING UNIQUE PER DEVICE.  RENAME YAML FILE TO SAME NAME.    ****
+  name: kauf-rgbsw             # **** CHANGE DEVICE NAME TO SOMETHING UNIQUE PER DEVICE.  RENAME YAML FILE TO SAME NAME.    ****
                                # **** USE DASHES (-) INSTEAD OF SPACES OR UNDERSCORE (_).  USE ONLY LOWER CASE LETTERS.     ****
   friendly_name: Kauf RGB Sw   # **** CHANGE FRIENDLY NAME TO SOMETHING UNIQUE PER DEVICE                                   ****
 
