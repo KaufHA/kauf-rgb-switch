@@ -271,18 +271,10 @@ output:
     id: pwm2_blue
     max_power: .35
 
-    # bit bucket output to connect fake lights to
-    # one channel per fake light is connected to bucket1 to trigger script
-    # other channels are connected to bucket2 to do nothing.  Only need script
-    # to run once per light change.
+    # Bit bucket output to connect configuration lights to.
     # https://esphome.io/components/output/template.html  
   - platform: template
-    id: bit_bucket1
-    type: float
-    write_action:
-      - script.execute: copy_vals
-  - platform: template
-    id: bit_bucket2
+    id: bit_bucket
     type: float
     write_action:
       - script.execute: script_do_nothing
@@ -306,9 +298,9 @@ light:
   - platform: rgb
     name: $friendly_name Small Off Value
     id: kauf_light1_off
-    red: bit_bucket1
-    green: bit_bucket2
-    blue: bit_bucket2
+    red: bit_bucket
+    green: bit_bucket
+    blue: bit_bucket
     entity_category: config
     default_transition_length: 0s
     forced_hash: 1452166609
@@ -319,13 +311,16 @@ light:
           name: Disabled
           update_interval: never
           lambda: return;
+    on_state:
+      then:
+        - script.execute: copy_vals
     
   - platform: rgb
     name: $friendly_name Small On Value
     id: kauf_light1_on
-    red: bit_bucket1
-    green: bit_bucket2
-    blue: bit_bucket2
+    red: bit_bucket
+    green: bit_bucket
+    blue: bit_bucket
     entity_category: config
     default_transition_length: 0s
     forced_hash: 1530533365
@@ -336,6 +331,9 @@ light:
           name: Disabled
           update_interval: never
           lambda: return;
+    on_state:
+      then:
+        - script.execute: copy_vals
     
   - platform: rgb
     name: $friendly_name Big Light
@@ -351,9 +349,9 @@ light:
   - platform: rgb
     name: $friendly_name Big Off Value
     id: kauf_light2_off
-    red: bit_bucket1
-    green: bit_bucket2
-    blue: bit_bucket2
+    red: bit_bucket
+    green: bit_bucket
+    blue: bit_bucket
     entity_category: config
     default_transition_length: 0s
     forced_hash: 730390778
@@ -364,13 +362,16 @@ light:
           name: Disabled
           update_interval: never
           lambda: return;
+    on_state:
+      then:
+        - script.execute: copy_vals
 
   - platform: rgb
     name: $friendly_name Big On Value
     id: kauf_light2_on
-    red: bit_bucket1
-    green: bit_bucket2
-    blue: bit_bucket2
+    red: bit_bucket
+    green: bit_bucket
+    blue: bit_bucket
     entity_category: config
     default_transition_length: 0s
     forced_hash: 1638474020
@@ -381,6 +382,9 @@ light:
           name: Disabled
           update_interval: never
           lambda: return;
+    on_state:
+      then:
+        - script.execute: copy_vals
 
 
 # https://esphome.io/components/select/index.html
