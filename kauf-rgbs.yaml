@@ -465,64 +465,44 @@ script:
 
           // switch is on, copy on values
           if ( id(ui_switch).state && (kauf_light1_on->get_effect_name() != "Disabled") ) {
-            if ( kauf_light1_on->current_values.is_on() ) {
-              auto call = id(kauf_light1).turn_on();
-              call.set_brightness(kauf_light1_on->current_values.get_brightness());
-              call.set_rgb(kauf_light1_on->current_values.get_red(),
-                           kauf_light1_on->current_values.get_green(),
-                           kauf_light1_on->current_values.get_blue());
-              call.perform();
-            }
-            else {
-              auto call = id(kauf_light1).turn_off();
-              call.perform();
-            }
+            auto call = id(kauf_light1).make_call();
+            call.set_state(kauf_light1_on->current_values.is_on());
+            call.set_brightness(kauf_light1_on->current_values.get_brightness());
+            call.set_rgb(kauf_light1_on->current_values.get_red(),
+                         kauf_light1_on->current_values.get_green(),
+                         kauf_light1_on->current_values.get_blue());
+            call.perform();
           }
 
           if ( id(ui_switch).state && (kauf_light2_on->get_effect_name() != "Disabled") ) {
-            if ( kauf_light2_on->current_values.is_on() ) {
-              auto call = id(kauf_light2).turn_on();
-              call.set_brightness(kauf_light2_on->current_values.get_brightness());
-              call.set_rgb(kauf_light2_on->current_values.get_red(),
-                           kauf_light2_on->current_values.get_green(),
-                           kauf_light2_on->current_values.get_blue());
-              call.perform();
-            }
-            else {
-              auto call = id(kauf_light2).turn_off();
-              call.perform();
-            }
+            auto call = id(kauf_light2).make_call();
+            call.set_state(kauf_light2_on->current_values.is_on());
+            call.set_brightness(kauf_light2_on->current_values.get_brightness());
+            call.set_rgb(kauf_light2_on->current_values.get_red(),
+                         kauf_light2_on->current_values.get_green(),
+                         kauf_light2_on->current_values.get_blue());
+            call.perform();
           }
 
           // switch is off, copy off values
           if ( !id(ui_switch).state && (kauf_light1_off->get_effect_name() != "Disabled") ) {
-            if ( kauf_light1_off->current_values.is_on() ) {
-              auto call = id(kauf_light1).turn_on();
-              call.set_brightness(kauf_light1_off->current_values.get_brightness());
-              call.set_rgb(kauf_light1_off->current_values.get_red(),
-                           kauf_light1_off->current_values.get_green(),
-                           kauf_light1_off->current_values.get_blue());
-              call.perform();
-            }
-            else {
-              auto call = id(kauf_light1).turn_off();
-              call.perform();
-            }
+            auto call = id(kauf_light1).make_call();
+            call.set_state(kauf_light1_off->current_values.is_on());
+            call.set_brightness(kauf_light1_off->current_values.get_brightness());
+            call.set_rgb(kauf_light1_off->current_values.get_red(),
+                         kauf_light1_off->current_values.get_green(),
+                         kauf_light1_off->current_values.get_blue());
+            call.perform();
           }
 
           if ( !id(ui_switch).state && (kauf_light2_off->get_effect_name() != "Disabled") ) {
-            if ( kauf_light2_off->current_values.is_on() ) {
-              auto call = id(kauf_light2).turn_on();
-              call.set_brightness(kauf_light2_off->current_values.get_brightness());
-              call.set_rgb(kauf_light2_off->current_values.get_red(),
-                           kauf_light2_off->current_values.get_green(),
-                           kauf_light2_off->current_values.get_blue());
-              call.perform();
-            }
-            else {
-              auto call = id(kauf_light2).turn_off();
-              call.perform();
-            }
+            auto call = id(kauf_light2).make_call();
+            call.set_state(kauf_light2_off->current_values.is_on());
+            call.set_brightness(kauf_light2_off->current_values.get_brightness());
+            call.set_rgb(kauf_light2_off->current_values.get_red(),
+                         kauf_light2_off->current_values.get_green(),
+                         kauf_light2_off->current_values.get_blue());
+            call.perform();
           }
 
 
