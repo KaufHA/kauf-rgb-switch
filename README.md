@@ -82,6 +82,8 @@ When using kauf-rgbs.yaml as a package in the ESPHome dashboard, you can configu
 
 ***sub_blink_check*** - Defines a script that, if running, stops the error light from blinking.
 
+***sub_transition_length*** - Change the default transition length for both lights.
+
 
 # Links
 - [Purchase switches on Amazon](https://www.amazon.com/dp/B0B1CKWV7K)
