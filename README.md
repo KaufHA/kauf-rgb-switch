@@ -10,7 +10,7 @@ substitutions:
   friendly_name: Bedroom Light
 
 packages:
-  kauf.rgbs: github://KaufHA/kauf-rgb-switch/kauf-rgbs.yaml
+  Kauf.RGBSw: github://KaufHA/kauf-rgb-switch/kauf-rgbs.yaml
 
 wifi:
   ssid: !secret wifi_ssid
