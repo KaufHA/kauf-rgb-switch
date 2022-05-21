@@ -48,6 +48,9 @@ substitutions:
 
   # allows status led to be blocked.  Currently only used on factory image to eliminate blinking during factory test.
   sub_blink_check: script_do_nothing
+  
+  # modify transition length of lights
+  sub_transition_length: 333ms
 
 # https://esphome.io/components/esp8266.html
 esp8266:
@@ -286,18 +289,18 @@ light:
 
   - platform: rgb
     name: $friendly_name Small Light
-    id: kauf_light1
+    id: small_light
     red: pwm1_red
     green: pwm1_green
     blue: pwm1_blue
-    default_transition_length: 333ms
+    default_transition_length: $sub_transition_length
     forced_hash: 3940173824
     forced_addr: 10
     global_addr: global_forced_addr
 
   - platform: rgb
     name: $friendly_name Small Off Value
-    id: kauf_light1_off
+    id: small_light_off
     red: bit_bucket
     green: bit_bucket
     blue: bit_bucket
@@ -317,7 +320,7 @@ light:
     
   - platform: rgb
     name: $friendly_name Small On Value
-    id: kauf_light1_on
+    id: small_light_on
     red: bit_bucket
     green: bit_bucket
     blue: bit_bucket
@@ -337,18 +340,18 @@ light:
     
   - platform: rgb
     name: $friendly_name Big Light
-    id: kauf_light2
+    id: big_light
     red: pwm2_red
     green: pwm2_green
     blue: pwm2_blue
     forced_hash: 3403140939
     forced_addr: 46
     global_addr: global_forced_addr
-    default_transition_length: 333ms
+    default_transition_length:  $sub_transition_length
 
   - platform: rgb
     name: $friendly_name Big Off Value
-    id: kauf_light2_off
+    id: big_light_off
     red: bit_bucket
     green: bit_bucket
     blue: bit_bucket
@@ -368,7 +371,7 @@ light:
 
   - platform: rgb
     name: $friendly_name Big On Value
-    id: kauf_light2_on
+    id: big_light_on
     red: bit_bucket
     green: bit_bucket
     blue: bit_bucket
@@ -428,14 +431,14 @@ script:
 
       # set LED red for ? ms then off for ? ms, then repeat
       - lambda: |-
-          auto call = id(kauf_light1).turn_on();
+          auto call = id(small_light).turn_on();
           call.set_brightness(1.0f);
           call.set_transition_length(0);
           call.set_rgb(1.0f, 0.0f, 0.0f);
           call.perform();
       - delay: 350ms
       - lambda: |-
-          auto call = id(kauf_light1).turn_off();
+          auto call = id(small_light).turn_off();
           call.set_transition_length(0);
           call.perform();
       - delay: 1150ms
@@ -464,44 +467,44 @@ script:
       - lambda: |-
 
           // switch is on, copy on values
-          if ( id(ui_switch).state && (kauf_light1_on->get_effect_name() != "Disabled") ) {
-            auto call = id(kauf_light1).make_call();
-            call.set_state(kauf_light1_on->current_values.is_on());
-            call.set_brightness(kauf_light1_on->current_values.get_brightness());
-            call.set_rgb(kauf_light1_on->current_values.get_red(),
-                         kauf_light1_on->current_values.get_green(),
-                         kauf_light1_on->current_values.get_blue());
+          if ( id(ui_switch).state && (small_light_on->get_effect_name() != "Disabled") ) {
+            auto call = id(small_light).make_call();
+            call.set_state(small_light_on->current_values.is_on());
+            call.set_brightness(small_light_on->current_values.get_brightness());
+            call.set_rgb(small_light_on->current_values.get_red(),
+                         small_light_on->current_values.get_green(),
+                         small_light_on->current_values.get_blue());
             call.perform();
           }
 
-          if ( id(ui_switch).state && (kauf_light2_on->get_effect_name() != "Disabled") ) {
-            auto call = id(kauf_light2).make_call();
-            call.set_state(kauf_light2_on->current_values.is_on());
-            call.set_brightness(kauf_light2_on->current_values.get_brightness());
-            call.set_rgb(kauf_light2_on->current_values.get_red(),
-                         kauf_light2_on->current_values.get_green(),
-                         kauf_light2_on->current_values.get_blue());
+          if ( id(ui_switch).state && (big_light_on->get_effect_name() != "Disabled") ) {
+            auto call = id(big_light).make_call();
+            call.set_state(big_light_on->current_values.is_on());
+            call.set_brightness(big_light_on->current_values.get_brightness());
+            call.set_rgb(big_light_on->current_values.get_red(),
+                         big_light_on->current_values.get_green(),
+                         big_light_on->current_values.get_blue());
             call.perform();
           }
 
           // switch is off, copy off values
-          if ( !id(ui_switch).state && (kauf_light1_off->get_effect_name() != "Disabled") ) {
-            auto call = id(kauf_light1).make_call();
-            call.set_state(kauf_light1_off->current_values.is_on());
-            call.set_brightness(kauf_light1_off->current_values.get_brightness());
-            call.set_rgb(kauf_light1_off->current_values.get_red(),
-                         kauf_light1_off->current_values.get_green(),
-                         kauf_light1_off->current_values.get_blue());
+          if ( !id(ui_switch).state && (small_light_off->get_effect_name() != "Disabled") ) {
+            auto call = id(small_light).make_call();
+            call.set_state(small_light_off->current_values.is_on());
+            call.set_brightness(small_light_off->current_values.get_brightness());
+            call.set_rgb(small_light_off->current_values.get_red(),
+                         small_light_off->current_values.get_green(),
+                         small_light_off->current_values.get_blue());
             call.perform();
           }
 
-          if ( !id(ui_switch).state && (kauf_light2_off->get_effect_name() != "Disabled") ) {
-            auto call = id(kauf_light2).make_call();
-            call.set_state(kauf_light2_off->current_values.is_on());
-            call.set_brightness(kauf_light2_off->current_values.get_brightness());
-            call.set_rgb(kauf_light2_off->current_values.get_red(),
-                         kauf_light2_off->current_values.get_green(),
-                         kauf_light2_off->current_values.get_blue());
+          if ( !id(ui_switch).state && (big_light_off->get_effect_name() != "Disabled") ) {
+            auto call = id(big_light).make_call();
+            call.set_state(big_light_off->current_values.is_on());
+            call.set_brightness(big_light_off->current_values.get_brightness());
+            call.set_rgb(big_light_off->current_values.get_red(),
+                         big_light_off->current_values.get_green(),
+                         big_light_off->current_values.get_blue());
             call.perform();
           }
 
