@@ -23,10 +23,10 @@ wifi:
   # enable wifi ap, which was not needed in dashboard import version
   ap:
     ssid: ${friendly_name} Hotspot
-    ap_timeout: 2147483647ms      # maximum 32 bit value.  About 3.5 weeks in milliseconds.
+    ap_timeout: 15s
 
   # by default, fast_connect is disabled.  Will automatically be enabled by wifi component
-  # needs to be set false here as dashboard import version sets true
+  # needs to be set false here to overwrite dashboard import version setting true
   fast_connect: false
   
   # add forced hash which isn't needed for dashboard import.  Allows saving wifi credentials across update.
