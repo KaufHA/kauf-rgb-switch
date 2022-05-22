@@ -20,14 +20,14 @@ substitutions:
 
   disable_entities: "true"     # set to "false" to have all entities show up in Home Assistant automatically
 
-  # substitutions for button press and release.  
+  # substitutions for button press and release.
   # any length of hold can be implemented with just on_press and on_release using the following directions.
   #   * have a delay for the desired hold in the on_press script
   #   * place actions in the on_press script after the delay to perform them while still holding the button
   #   * place actions in the on_release script, with the condition that the on_press script is not running, to
   #     perform them on release of the button.
   #   * stop the on_press script in the on_release script so that on_press actions do not get executed if timer didn't run out.
-  
+
   # You can implement separate hold and press actions by:
   #   on_press:   delay for desired length of hold then perform hold action
   #   on_release: if on_press is still running, do press action and stop on_press script.
@@ -48,7 +48,7 @@ substitutions:
 
   # allows status led to be blocked.  Currently only used on factory image to eliminate blinking during factory test.
   sub_blink_check: script_do_nothing
-  
+
   # modify transition length of lights
   sub_transition_length: 333ms
 
@@ -140,6 +140,7 @@ binary_sensor:
         input: true
         pullup: true
       inverted: true
+
     on_press:
         then:
             # store press time in ms
@@ -210,11 +211,13 @@ switch:
     forced_hash: 1672474889
     forced_addr: 4
     global_addr: global_forced_addr
+
     on_turn_on:
       - lambda: |-
           id(kauf_api)->set_reboot_timeout(0);  // 0 disables auto rebooting and also new status led blinking.  doesn't stop current status led blinking
           id(kauf_api)->status_clear_warning(); // stops current status led blinking, timeout 0 keeps it from restarting
-      - script.execute: script_save_changes      
+      - script.execute: script_save_changes
+
     on_turn_off:
       - lambda: id(kauf_api)->set_reboot_timeout(900000);
       - script.execute: script_save_changes
@@ -226,13 +229,13 @@ switch:
     restore_state: true
     entity_category: config
     icon: mdi:toggle-switch-off-outline
-
     forced_hash: 1841528035
     forced_addr: 6
     global_addr: global_forced_addr
 
     on_turn_on:
       - script.execute: script_save_changes
+
     on_turn_off:
       - script.execute: script_save_changes
 
@@ -317,7 +320,7 @@ light:
     on_state:
       then:
         - script.execute: copy_vals
-    
+
   - platform: rgb
     name: $friendly_name Small On Value
     id: small_light_on
@@ -337,17 +340,17 @@ light:
     on_state:
       then:
         - script.execute: copy_vals
-    
+
   - platform: rgb
     name: $friendly_name Big Light
     id: big_light
     red: pwm2_red
     green: pwm2_green
     blue: pwm2_blue
+    default_transition_length: $sub_transition_length
     forced_hash: 3403140939
     forced_addr: 46
     global_addr: global_forced_addr
-    default_transition_length:  $sub_transition_length
 
   - platform: rgb
     name: $friendly_name Big Off Value
@@ -416,7 +419,7 @@ select:
             else if ( x == "Always Off" )   { id(relay).turn_off(); }
             else if ( id(ui_switch).state ) { id(relay).turn_on();  }
             else      /* ui_switch off */   { id(relay).turn_off(); }
-        - script.execute: script_save_changes      
+        - script.execute: script_save_changes
 
 
 # https://esphome.io/guides/automations.html#script-component
