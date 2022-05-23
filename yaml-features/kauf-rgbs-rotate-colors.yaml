@@ -7,7 +7,7 @@ substitutions:
   save_on_state: 'true'
   save_off_state: 'true'
 
-  # initial_delay is hold time to first change, change_delay is hold tiem between subsequent changes.
+  # initial_delay is hold time to first change, change_delay is hold time between subsequent changes.
   initial_delay: 750ms
   change_delay:  750ms
 
@@ -52,7 +52,7 @@ script:
 
   - id: script_on_press
     then:
-      - delay: $change_delay
+      - delay: $initial_delay
       - script.execute: script_change_color
 
   - id: script_on_release
