@@ -31,6 +31,8 @@ This repo contains files for the KAUF RGB Light Switch.
 
 ***kauf-rgbs-factory.yaml*** - The yaml file to build the factory bin file.  Generally not useful to end users.
 
+***yaml-features* directory** - Contains additional yaml files that can be compiled in to add features.  See readme file in that directory for more information.
+
 # Entities
 If using the precompiled binary or kauf-rgbs.yaml as a package in the ESPHome dashboard, the following configuration entities are automatically created.  Entities listed as disabled by default can be enabled in Home Assistant, or simply modified through the web interface by clicking "Visit Device" in Home Assistant or typing the switch's IP address into a web browser.
 
