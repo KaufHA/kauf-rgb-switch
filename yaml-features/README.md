@@ -12,4 +12,4 @@ packages:
   Kauf.RGBSw: github://KaufHA/kauf-rgb-switch/kauf-rgbs.yaml
 ```
 
-With this yaml file included, holding the button will cause the big light to rotate through the color wheel.  The selected color will be remembered as the turn-on or turn-off color automatically depending on the current state of the switch.  SEe yaml file for various configurations that can be changed with substitutions, including customizing the colors that are rotated through.
+With this yaml file included, holding the button will cause the big light to rotate through the color wheel.  The selected color will be remembered as the turn-on or turn-off color automatically depending on the current state of the switch.  See substitution section of the yaml file for various configurations that can be changed with substitutions, including customizing the colors that are rotated through.
