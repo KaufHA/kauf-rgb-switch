@@ -42,7 +42,7 @@ Defines 12 colors that the RGB Switch will cycle through when the button is held
 
 **Brightness Settings**
 
-The main idea behind the brightness and color settings is first to allow the light to toggle to white instead of only the cycle-selected color.  The point of having entity/attribute options instead of just a fixed value is to allow the lights to initially turn on to a value from an adaptive/circadian light integration instead of turning on first to a fixed value and then to the adaptive/circadian value.  Creates a cleaner fade to on.  The defined values are passed to [Home Assistant's light.turn_on service](https://www.home-assistant.io/integrations/light/#service-lightturn_on), so the documentation there should be followed as far as acceptable values.
+The main idea behind the brightness and color settings is first to allow the light to toggle to white instead of only the cycle-selected color.  The point of having entity/attribute options instead of just a fixed value is to allow the lights to initially turn on to a value from an adaptive/circadian light integration instead of turning on first to a fixed value and then to the adaptive/circadian value via the integration.  Creates a cleaner fade to on.  The defined values are passed to [Home Assistant's light.turn_on service](https://www.home-assistant.io/integrations/light/#service-lightturn_on), so the documentation there should be followed as far as acceptable values.
 
 The brightness substitutions control the brightness of the synced light entity when toggled via pressing the RGB Switch's button.  By default, the light entity is toggled without any indication of brightness, which keeps the most recent brightness.  The following options are available, and only one should be used.
 
