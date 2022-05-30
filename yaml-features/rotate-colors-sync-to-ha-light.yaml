@@ -1,0 +1,333 @@
+substitutions:
+
+  ############################################################################
+  # configuration substitutions.  redefine these in your local yaml file to
+  # change behavior.  You should add these substitutions in your main yaml
+  # under name and friendly_name.  This file does not need to be downloaded
+  # and edited.
+
+  # defines whether current color will be saved to the config light entities.
+  save_on_state: 'true'    # default is to save selected color as on color of switch
+  save_off_state: 'false'  # but don't save off state
+
+  # initial_delay is hold time to first change, change_delay is hold time between subsequent changes.
+  initial_delay: 750ms
+  change_delay:  750ms
+
+  # colors to rotate through, needs to be 3 comma-separated int values between 0-255 (r,g,b)
+  color_0:  '255,   0,   0' # red
+  color_1:  '255, 127,   0'
+  color_2:  '255, 255,   0' # yellow
+  color_3:  '127, 255,   0'
+  color_4:  '  0, 255,   0' # green
+  color_5:  '  0, 255, 127'
+  color_6:  '  0, 255, 255' # cyan
+  color_7:  '  0, 127, 255'
+  color_8:  '  0,   0, 255' # blue
+  color_9:  '127,   0, 255'
+  color_10: '255,   0, 255' # magenta
+  color_11: '255,   0, 127'
+
+  # control a home assistant light entity
+  hass_light_entity:              no.ne
+
+  # default brightness values for just turning light on.
+  # brightness needs to be int 0-255.
+  # brightness_pct needs to be 0-100.
+  # default if none of these are overwritten is to turn on light without specifying a brightness
+  #
+  # set either:
+  #  (a) one "entity" value to adopt brightness/pct from a home assistant entity.
+  #  (b) one "entity" value and its paired "attribute" value to adopt brightness/pct from a home assistant entity attribute.
+  #  (c) one "fixed" value to adopt a fixed brightness every time the light turns on.
+  #  (d) DEFAULT: keep all values as "none" to not send a brightness with the turn_on command, keeping previous brightness.
+  hass_brightness_entity:        none
+  hass_brightness_attribute:     none
+  hass_brightness_fixed:         none
+  hass_brightness_pct_entity:    none
+  hass_brightness_pct_attribute: none
+  hass_brightness_pct_fixed:     none
+
+  # default color or color temp values for just turning light on
+  #
+  # set either:
+  #  (a) one "entity" value to adopt color/temp from a home assistant entity.
+  #  (b) one "entity" value and its paired "attribute" value to adopt color/temp from a home assistant entity attribute.
+  #  (c) one "fixed" value to always turn on light to a fixed color/temp
+  #  (d) keep all values as set below to always turn light on to a fixed 250 mireds.
+  #  (e) set the mireds_fixed value to "none" to keep the light's last set color
+  #
+  # In any case, these will be arguments to home assistant's light.turn_on service, so the values need to comply with
+  # the requirements of those arguments (either rgb_color, color_temp, or kelvin).
+  # https://www.home-assistant.io/integrations/light/#service-lightturn_on
+  hass_rgb_entity:               none
+  hass_rgb_attribute:            none
+  hass_rgb_fixed:                none
+  hass_ct_kelvin_entity:         none
+  hass_ct_kelvin_attribute:      none
+  hass_ct_kelvin_fixed:          none
+  hass_ct_mireds_entity:         none
+  hass_ct_mireds_attribute:      none
+  hass_ct_mireds_fixed:          '250'
+
+  # this yaml file has to disable button toggling on press, so the configuration switch no longer works.
+  # if you still want button disabled for toggling, redefine this to false.
+  # if you are controlling a smart bulb or other light entity from home assistant, you probably want
+  # to leave this as true but then disable the relay by setting the relay config select entity to
+  # always on or always off
+  still_toggle: 'true'
+
+
+  ############################################################################
+  # substitutions to implement functionality, do not change these
+  sub_on_press:   script_on_press
+  sub_on_release: script_on_release
+
+
+globals:
+  - id: current_color
+    type: int
+    restore_value: no
+    initial_value: '999'
+
+
+esphome:
+  on_boot:
+    then:
+      - switch.turn_on: disable_button
+
+text_sensor:
+  - platform: homeassistant
+    id: hass_light_state
+    entity_id: $hass_light_entity
+    on_value:
+      - delay: 1ms
+      - if:
+          condition:
+            lambda: return ( ((x == "on") && !id(ui_switch).state) || ((x == "off") && id(ui_switch).state) );
+          then:
+            - switch.toggle: ui_switch
+
+
+script:
+
+  - id: script_on_press
+    then:
+      - delay: $initial_delay
+
+        # decrement current color so that cycle begins on current color not next color.
+      - lambda: id(current_color)--;
+      - script.execute: script_change_color
+
+  - id: script_on_release
+    then:
+      - script.stop: script_change_color
+      - if:
+          condition:
+            - script.is_running: script_on_press  # if initial_delay timer has not expired yet.
+          then:
+            - script.stop: script_on_press
+            - lambda: |-
+
+                // toggle ui switch if enabled
+                if ($still_toggle) id(ui_switch).toggle();
+
+                // turn off home assistant light if entity set and switch off
+                if ( (strcmp("$hass_light_entity","no.ne") != 0) && !id(ui_switch).state ) {
+                  api::HomeAssistantServiceCallAction<> *ha_service_call;
+                  ha_service_call = new api::HomeAssistantServiceCallAction<>(kauf_api, false);
+                  ha_service_call->set_service("light.turn_off");
+                  ha_service_call->add_data("entity_id", "$hass_light_entity");
+                  ha_service_call->play();
+                }
+
+                // turn on home assistant light if entity set and switch on
+                else if ( (strcmp("$hass_light_entity","no.ne") != 0) && id(ui_switch).state ) {
+                  api::HomeAssistantServiceCallAction<> *ha_service_call;
+                  ha_service_call = new api::HomeAssistantServiceCallAction<>(kauf_api, false);
+                  ha_service_call->set_service("light.turn_on");
+                  ha_service_call->add_data("entity_id", "$hass_light_entity");
+
+                  ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+                  // add brightness if set
+
+                  // brightness entity set, attribute not set
+                  if ( (strcmp("$hass_brightness_entity","none")!=0) && (strcmp("$hass_brightness_attribute","none")==0) )
+                    ha_service_call->add_data_template("brightness", "{{ states(\"$hass_brightness_entity\") }}");
+
+                  // brightness entity and attribute both set
+                  else if ( (strcmp("$hass_brightness_entity","none")!=0) && (strcmp("$hass_brightness_attribute","none")!=0) )
+                    ha_service_call->add_data_template("brightness", "{{ state_attr(\"$hass_brightness_entity\",\"$hass_brightness_attribute\") }}");
+
+                  // fixed brightness set
+                  else if ( strcmp("$hass_brightness_fixed","none")!=0 )
+                    ha_service_call->add_data_template("brightness", "$hass_brightness_fixed");
+
+                  // brightness_pct entity set, attribute not set
+                  else if ( (strcmp("$hass_brightness_pct_entity","none")!=0) && (strcmp("$hass_brightness_pct_attribute","none")==0) )
+                    ha_service_call->add_data_template("brightness_pct", "{{ states(\"$hass_brightness_pct_entity\") }}");
+
+                  // brightness_pct entity and attribute both set
+                  else if ( (strcmp("$hass_brightness_pct_entity","none")!=0) && (strcmp("$hass_brightness_pct_attribute","none")!=0) )
+                    ha_service_call->add_data_template("brightness_pct", "{{ state_attr(\"$hass_brightness_pct_entity\",\"$hass_brightness_pct_attribute\") }}");
+
+                  // fixed brightness_pct set
+                  else if ( strcmp("$hass_brightness_pct_fixed","none")!=0 )
+                    ha_service_call->add_data_template("brightness_pct", "$hass_brightness_pct_fixed");
+
+
+                  ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+                  // add color/temp if set
+
+                  // fixed kelvin set
+                  if ( strcmp("$hass_ct_kelvin_fixed","none")!=0 )
+                    ha_service_call->add_data_template("kelvin", "$hass_ct_kelvin_fixed");
+
+                  // mireds entity set, attribute not set
+                  else if ( (strcmp("$hass_ct_kelvin_entity","none")!=0) && (strcmp("$hass_ct_kelvin_attribute","none")==0) )
+                    ha_service_call->add_data_template("kelvin", "{{ states(\"$hass_ct_kelvin_entity\") }}");
+
+                  // mireds entity and attribute both set
+                  else if ( (strcmp("$hass_ct_kelvin_entity","none")!=0) && (strcmp("$hass_ct_kelvin_attribute","none")!=0) )
+                    ha_service_call->add_data_template("kelvin", "{{ state_attr(\"$hass_ct_kelvin_entity\",\"$hass_ct_kelvin_attribute\") }}");
+
+                  // fixed rgb set
+                  else if ( strcmp("$hass_rgb_fixed","none")!=0 )
+                    ha_service_call->add_data_template("rgb_color", "$hass_rgb_fixed");
+
+                  // rgb entity set, attribute not set
+                  else if ( (strcmp("$hass_rgb_entity","none")!=0) && (strcmp("$hass_rgb_attribute","none")==0) )
+                    ha_service_call->add_data_template("rgb_color", "{{ states(\"$hass_rgb_entity\") }}");
+
+                  // rgb entity and attribute both set
+                  else if ( (strcmp("$hass_rgb_entity","none")!=0) && (strcmp("$hass_rgb_attribute","none")!=0) )
+                    ha_service_call->add_data_template("rgb_color", "{{ state_attr(\"$hass_rgb_entity\",\"$hass_rgb_attribute\") }}");
+
+                  // mireds entity set, attribute not set
+                  else if ( (strcmp("$hass_ct_mireds_entity","none")!=0) && (strcmp("$hass_ct_mireds_attribute","none")==0) )
+                    ha_service_call->add_data_template("color_temp", "{{ states(\"$hass_ct_mireds_entity\") }}");
+
+                  // mireds entity and attribute both set
+                  else if ( (strcmp("$hass_ct_mireds_entity","none")!=0) && (strcmp("$hass_ct_mireds_attribute","none")!=0) )
+                    ha_service_call->add_data_template("color_temp", "{{ state_attr(\"$hass_ct_mireds_entity\",\"$hass_ct_mireds_attribute\") }}");
+
+                  // fixed mireds set (last since set by default, that way any other option set will override)
+                  else if ( strcmp("$hass_ct_mireds_fixed","none")!=0 )
+                    ha_service_call->add_data_template("color_temp", "$hass_ct_mireds_fixed");
+
+                  ha_service_call->play();
+                }
+
+  - id: script_change_color
+    mode: restart
+    then:
+      - lambda: |-
+
+          id(current_color)++;
+          if ( id(current_color) > 11) id(current_color) = 0;
+          if ( id(current_color) < 0 ) id(current_color) = 11;
+
+          auto call = id(big_light).turn_on();
+
+          // use config light instead if enabled
+          if ( $save_on_state &&  id(ui_switch).state) call = id(big_light_on).turn_on();
+          if ( $save_off_state && !id(ui_switch).state) call = id(big_light_off).turn_on();
+
+          int red, green, blue;
+
+          // grab color ints based on currently selected color
+          if ( id(current_color) == 0 ) {
+            int used_colors[3] = {$color_0};
+            red = used_colors[0];
+            green = used_colors[1];
+            blue = used_colors[2];
+          }
+          else if ( id(current_color) == 1 ) {
+            int used_colors[3] = {$color_1};
+            red = used_colors[0];
+            green = used_colors[1];
+            blue = used_colors[2];
+          }
+          else if ( id(current_color) == 2 ) {
+            int used_colors[3] = {$color_2};
+            red = used_colors[0];
+            green = used_colors[1];
+            blue = used_colors[2];
+          }
+          else if ( id(current_color) == 3 ) {
+            int used_colors[3] = {$color_3};
+            red = used_colors[0];
+            green = used_colors[1];
+            blue = used_colors[2];
+          }
+          else if ( id(current_color) == 4 ) {
+            int used_colors[3] = {$color_4};
+            red = used_colors[0];
+            green = used_colors[1];
+            blue = used_colors[2];
+          }
+          else if ( id(current_color) == 5 ) {
+            int used_colors[3] = {$color_5};
+            red = used_colors[0];
+            green = used_colors[1];
+            blue = used_colors[2];
+          }
+          else if ( id(current_color) == 6 ) {
+            int used_colors[3] = {$color_6};
+            red = used_colors[0];
+            green = used_colors[1];
+            blue = used_colors[2];
+          }
+          else if ( id(current_color) == 7 ) {
+            int used_colors[3] = {$color_7};
+            red = used_colors[0];
+            green = used_colors[1];
+            blue = used_colors[2];
+          }
+          else if ( id(current_color) == 8 ) {
+            int used_colors[3] = {$color_8};
+            red = used_colors[0];
+            green = used_colors[1];
+            blue = used_colors[2];
+          }
+          else if ( id(current_color) == 9 ) {
+            int used_colors[3] = {$color_9};
+            red = used_colors[0];
+            green = used_colors[1];
+            blue = used_colors[2];
+          }
+          else if ( id(current_color) == 10 ) {
+            int used_colors[3] = {$color_10};
+            red = used_colors[0];
+            green = used_colors[1];
+            blue = used_colors[2];
+          }
+          else {
+            int used_colors[3] = {$color_11};
+            red = used_colors[0];
+            green = used_colors[1];
+            blue = used_colors[2];
+          }
+
+          // set call rgb value by converting to floats
+          call.set_rgb( (float) red/255.0f , (float) green/255.0f , (float) blue/255.0f );
+          call.set_transition_length(0);
+          call.perform();
+
+
+          // call home assistant service if set and switch is on
+          if ( (strcmp("$hass_light_entity","no.ne") != 0) && id(ui_switch).state ) {
+            api::HomeAssistantServiceCallAction<> *ha_service_call;
+            ha_service_call = new api::HomeAssistantServiceCallAction<>(kauf_api, false);
+            ha_service_call->set_service("light.turn_on");
+            ha_service_call->add_data("entity_id", "$hass_light_entity");
+            ha_service_call->add_data("transition","0");
+            ha_service_call->add_data_template("rgb_color", "[" + to_string(red) + "," + to_string(green) + "," + to_string(blue) + "]");
+            ha_service_call->play();
+          }
+
+
+
+        # delay and run again forever.  Stopped by on_release script.
+      - delay: $change_delay
+      - script.execute: script_change_color
