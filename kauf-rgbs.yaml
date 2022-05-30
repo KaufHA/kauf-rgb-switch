@@ -15,7 +15,7 @@ substitutions:
 
   # https://esphome.io/components/esphome.html#esphome-creators-project
   project_name: Kauf.RGBSw
-  project_ver_num: "1.30"
+  project_ver_num: "1.31"
   project_ver_let: y
 
   disable_entities: "true"     # set to "false" to have all entities show up in Home Assistant automatically
@@ -278,7 +278,7 @@ output:
     max_power: .35
 
     # Bit bucket output to connect configuration lights to.
-    # https://esphome.io/components/output/template.html  
+    # https://esphome.io/components/output/template.html
   - platform: template
     id: bit_bucket
     type: float
@@ -513,13 +513,22 @@ script:
 
 
 # https://esphome.io/components/button/index.html
-# https://esphome.io/components/button/restart.html
 button:
+
+    # https://esphome.io/components/button/restart.html
   - platform: restart
     id: restart_button
     name: $friendly_name Restart Firmware
     entity_category: diagnostic
     disabled_by_default: $disable_entities
+
+    # https://esphome.io/components/button/template.html
+  - platform: template
+    name: $friendly_name Restore Lights
+    entity_category: diagnostic
+    disabled_by_default: $disable_entities
+    on_press:
+      - script.execute: copy_vals
 
 
 # Send IP Address to HA
