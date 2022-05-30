@@ -57,11 +57,13 @@ The brightness substitutions control the brightness of the synced light entity w
 
 Substitutions control the color of the synced light entity when toggled via pressing the RGB Switch's button.  By default, a fixed value of 250 mireds is used, which is 50/50 warm/cold white for the KAUF bulbs.
 
-Any defined value will overwrite the default 250 mired option.  hass_ct_mireds_fixed can be redefined to "none" to turn on the light entity without any indication of color and thereby toggle the light entity to the color-cycle selected color.  The following options are available, and only one should be used.
+Any defined value will overwrite the default 250 mired option.  hass_ct_mireds_fixed can be redefined to "none" to turn on the light entity without any indication of color and thereby toggle the light entity to the color-cycle selected color.
+
+The following options are available, and only one should be used.
 
 - **hass_rgb_entity** - defines a Home Assistant entity with an RGB value that will be used as the turn-on color.
 - **hass_rgb_entity** and **hass_rgb_attribute** - defines a Home Assistant entity attribute with an RGB value that will be used as the turn-on color.
-- **hass_rgb_entity** - defines a fixed rgb value that will be used as the turn-on color.
+- **hass_rgb_fixed** - defines a fixed rgb value that will be used as the turn-on color.
 - **hass_ct_kelvin_entity** - defines a Home Assistant sensor entity that will be used as the turn-on color temperature with units being Kelvin.
 - **hass_ct_kelvin_entity** and **hass_ct_kelvin_attribute** - defines a Home Assistant entity attribute that will be used as the turn-on color temperature with the units being Kelvin.
 - **hass_ct_kelvin_fixed** - defines a fixed Kelvin value for the turn-on color temperature.
