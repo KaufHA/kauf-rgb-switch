@@ -47,10 +47,10 @@ The main idea behind the brightness and color settings is first to allow the lig
 The brightness substitutions control the brightness of the synced light entity when toggled via pressing the RGB Switch's button.  By default, the light entity is toggled without any indication of brightness, which keeps the most recent brightness.  The following options are available, and only one should be used.
 
 - **hass_brightness_entity** - defines a sensor entity in Home Assistant with an integer value between 0 and 255 that will be used for the brightness
-- **hass_brightness_entity** and **hass_brightness_attribute** - defines a sensor attribute in Home Assistant with an integer value between 0 and 255 that will be used for the brightness.
+- **hass_brightness_entity** and **hass_brightness_attribute** - defines an entity attribute in Home Assistant with an integer value between 0 and 255 that will be used for the brightness.
 - **hass_brightness_fixed** - defines a fixed integer value between 0 and 255 that will be used for the brightness.
 - **hass_brightness_pct_entity** - defines a sensor entity in Home Assistant with a value between 0 and 100 that will be used for the brightness
-- **hass_brightness_pct_entity** and **hass_brightness_pct_attribute** - defines a sensor attribute in Home Assistant with a value between 0 and 100 that will be used for the brightness.
+- **hass_brightness_pct_entity** and **hass_brightness_pct_attribute** - defines an entity attribute in Home Assistant with a value between 0 and 100 that will be used for the brightness.
 - **hass_brightness_pct_fixed** - defines a fixed value between 0 and 100 that will be used for the brightness.
 
 **Color Settings**
