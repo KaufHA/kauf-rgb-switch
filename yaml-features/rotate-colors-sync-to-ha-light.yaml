@@ -86,13 +86,9 @@ globals:
 esphome:
   on_boot:
     then:
-      - if:
-          condition:
-            lambda: return ( id(select_button).state == "Toggle on Press");
-          then:
-            - select.set:
-                id: select_button
-                option: "Toggle on Release"
+      - select.set:
+          id: select_button
+          option: "Toggle on Release"
             
 
 text_sensor:
