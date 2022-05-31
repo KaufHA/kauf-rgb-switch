@@ -70,19 +70,11 @@ substitutions:
   hass_ct_mireds_attribute:      none
   hass_ct_mireds_fixed:          '250'
 
-  # this yaml file has to disable button toggling on press, so the configuration switch no longer works.
-  # if you still want button disabled for toggling, redefine this to false.
-  # if you are controlling a smart bulb or other light entity from home assistant, you probably want
-  # to leave this as true but then disable the relay by setting the relay config select entity to
-  # always on or always off
-  still_toggle: 'true'
-
-
   ############################################################################
   # substitutions to implement functionality, do not change these
-  sub_on_press:   script_on_press
-  sub_on_release: script_on_release
-
+  sub_on_press:     script_on_press
+  sub_on_release:   script_on_release
+  sub_toggle_check: script_change_color
 
 globals:
   - id: current_color
@@ -94,7 +86,14 @@ globals:
 esphome:
   on_boot:
     then:
-      - switch.turn_on: disable_button
+      - if:
+          condition:
+            lambda: return ( id(select_button).state == "Toggle on Press");
+          then:
+            - select.set:
+                id: select_button
+                option: "Toggle on Release"
+            
 
 text_sensor:
   - platform: homeassistant
@@ -128,9 +127,6 @@ script:
           then:
             - script.stop: script_on_press
             - lambda: |-
-
-                // toggle ui switch if enabled
-                if ($still_toggle) id(ui_switch).toggle();
 
                 // turn off home assistant light if entity set and switch off
                 if ( (strcmp("$hass_light_entity","no.ne") != 0) && !id(ui_switch).state ) {
