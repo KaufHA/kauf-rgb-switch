@@ -15,10 +15,12 @@ substitutions:
 
   # https://esphome.io/components/esphome.html#esphome-creators-project
   project_name: Kauf.RGBSw
-  project_ver_num: "1.31"
+  project_ver_num: "1.311"
   project_ver_let: y
 
   disable_entities: "true"     # set to "false" to have all entities show up in Home Assistant automatically
+  
+  wifi_ap_timeout: 2min        # default to 2 minute timeout for yaml file as package.
 
   # substitutions for button press and release.
   # any length of hold can be implemented with just on_press and on_release using the following directions.
@@ -108,6 +110,14 @@ wifi:
 
   forced_addr: 82
   global_addr: global_forced_addr
+
+  ap:
+    ssid: ${friendly_name} Hotspot
+    ap_timeout: $wifi_ap_timeout
+
+
+# https://esphome.io/components/captive_portal.html
+captive_portal:
 
 
 # https://esphome.io/components/logger.html
