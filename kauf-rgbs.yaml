@@ -592,7 +592,8 @@ interval:
 #  00- 01:   Relay Switch
 #  02- 03:   UI Switch
 #  04- 05:   No HASS Switch
-#  06- 07:   Disable Button Switch
+#  06- 07:   Button Config Select
+#  08- 09:   Relay Config Select
 #  10- 21:   Small Light
 #  22- 33:   Small Off Value Light
 #  34- 45:   Small On Value Light
