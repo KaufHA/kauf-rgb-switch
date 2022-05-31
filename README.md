@@ -61,11 +61,24 @@ If using the precompiled binary or kauf-rgbs.yaml as a package in the ESPHome da
 
 ***Small On Value*** light entity - Allows setting of a light state that will automatically be copied to the *Small Light* light entity when the main switch turns on.  If this configuration light entity is turned off, then the small light will turn off when the main switch turns on.  To disable automation of the small light when the main switch turns on, turn this configuration light entity on and then select the Disabled effect.
 
-***Disable Button*** switch entity - Pressing the button will not toggle the main switch or relay if this configuration switch is turned on.  The button binary sensor will still show when the button is pressed so the button can be used for a different automation.
-
 ***No HASS*** switch entity - Disabled by default.  Turn this switch on if not using Home Assistant with the switch.  Prevents the switch from flashing an error due to no API connection and rebooting every 15 minutes.
 
 ***Relay Config*** select entity - Allows the relay to be configured to always on, always off, or switched.  Switched means the relay will provide power to the load only when the main switch entity is on.
+
+***Button Config*** select entity - Pressing the button will not toggle the main switch or relay if the Disabled option is selected.  The button binary sensor will still show when the button is pressed so the button can be used for a different automation.  Otherwise, either toggling on press or toggling on release can be selected.
+
+
+## Diagnostic Entities
+
+***Button Press Duration*** sensor entity - gives the duration of the most recent button press.  Goes to 0 while button is pressed.
+
+***IP Address*** sensor entity - gives the switch's IP address.
+
+***Restart Firmware*** button entity - restarts the switch's firmware when pressed.
+
+***Restore Lights*** button entity - restores both lights based on configuration light entities and switch state.  If you change light values, this button can be used to restore them back to their normal states.
+
+***Uptime*** sensor entity - gives the switch's uptime in seconds.
 
 # Advanced Settings
 When using kauf-rgbs.yaml as a package in the ESPHome dashboard, you can configure the following aspects by adding substitutions.  The substitutions section of kauf-rgbs.yaml has comments with more explanation as well.
