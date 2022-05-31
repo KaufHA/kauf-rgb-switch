@@ -15,7 +15,7 @@ substitutions:
 
   # https://esphome.io/components/esphome.html#esphome-creators-project
   project_name: Kauf.RGBSw
-  project_ver_num: "1.301"
+  project_ver_num: "1.31"
   project_ver_let: y
 
   disable_entities: "true"     # set to "false" to have all entities show up in Home Assistant automatically
@@ -38,6 +38,10 @@ substitutions:
   # duration sensor will also still update even with these redefined.
   sub_on_press:    script_do_nothing   # executes right when button is pressed
   sub_on_release:  script_do_nothing   # executes right when button is released
+
+  # an extra script that, if running, will stop the switch from toggling on button release.
+  sub_toggle_check: script_do_nothing
+
 
   # these will execute when ui_switch turns on and off, respectively.  like on_press and on_release above, built-in
   # automations still all run.  Lights changing can be disabled through the config light entity effects.  Relay
@@ -149,15 +153,21 @@ binary_sensor:
               id(global_press_time) = millis();
               id(sensor_press_duration).publish_state(0);
 
-              // toggle if button not disabled
-              if (!id(disable_button).state) {
+              // toggle if button is configured to toggle on press
+              if (id(select_button).state == "Toggle on Press") {
                 id(ui_switch).toggle(); }
           - script.execute: $sub_on_press
 
     on_release:
         then:
-            # set duration sensor
-          - lambda: id(sensor_press_duration).publish_state(millis() - id(global_press_time));
+          - lambda: |-
+              // set press duration sensor
+              id(sensor_press_duration).publish_state(millis() - id(global_press_time));
+
+              // toggle if configured to toggle on release and toggle check script is no longer running
+              if (  (id(select_button).state == "Toggle on Release") && !id($sub_toggle_check).is_running() ) {
+                id(ui_switch).toggle(); }
+
           - script.execute: $sub_on_release
 
 
@@ -220,23 +230,6 @@ switch:
 
     on_turn_off:
       - lambda: id(kauf_api)->set_reboot_timeout(900000);
-      - script.execute: script_save_changes
-
-  - platform: template
-    id: disable_button
-    name: $friendly_name Disable Button
-    optimistic: true
-    restore_state: true
-    entity_category: config
-    icon: mdi:toggle-switch-off-outline
-    forced_hash: 1841528035
-    forced_addr: 6
-    global_addr: global_forced_addr
-
-    on_turn_on:
-      - script.execute: script_save_changes
-
-    on_turn_off:
       - script.execute: script_save_changes
 
 
@@ -420,6 +413,23 @@ select:
             else if ( id(ui_switch).state ) { id(relay).turn_on();  }
             else      /* ui_switch off */   { id(relay).turn_off(); }
         - script.execute: script_save_changes
+
+  - platform: template
+    name: $friendly_name Button Config
+    id: select_button
+    optimistic: true
+    options:
+      - Toggle on Press
+      - Disabled
+      - Toggle on Release
+    restore_value: true
+    entity_category: config
+    icon: mdi:toggle-switch-off-outline
+    forced_hash: 1841528035
+    forced_addr: 6
+    global_addr: global_forced_addr
+    on_value:
+      - script.execute: script_save_changes
 
 
 # https://esphome.io/guides/automations.html#script-component
