@@ -6,7 +6,7 @@ substitutions:
   # in your local yaml file by redefining them.
   #
   # packages:
-  #   kauf.rgbsw: github://bkaufx/kauf-rgb-switch/kauf-rgbs.yaml
+  #   kauf.rgbsw: github://KaufHA/kauf-rgb-switch/kauf-rgbs-lite.yaml
   #
 
   name: kauf-rgbsw             # **** CHANGE DEVICE NAME TO SOMETHING UNIQUE PER DEVICE.  RENAME YAML FILE TO SAME NAME.    ****
@@ -15,19 +15,21 @@ substitutions:
 
   # https://esphome.io/components/esphome.html#esphome-creators-project
   project_name: Kauf.RGBSw
-  project_ver_num: "1.30"
+  project_ver_num: "1.311"
   project_ver_let: l
 
   disable_entities: "true"     # set to "false" to have all entities show up in Home Assistant automatically
 
-  # substitutions for button press and release.  
+  wifi_ap_timeout: 2min        # default to 2 minute timeout for yaml file as package.
+
+  # substitutions for button press and release.
   # any length of hold can be implemented with just on_press and on_release using the following directions.
   #   * have a delay for the desired hold in the on_press script
   #   * place actions in the on_press script after the delay to perform them while still holding the button
   #   * place actions in the on_release script, with the condition that the on_press script is not running, to
   #     perform them on release of the button.
   #   * stop the on_press script in the on_release script so that on_press actions do not get executed if timer didn't run out.
-  
+
   # You can implement separate hold and press actions by:
   #   on_press:   delay for desired length of hold then perform hold action
   #   on_release: if on_press is still running, do press action and stop on_press script.
@@ -39,6 +41,9 @@ substitutions:
   sub_on_press:    script_do_nothing   # executes right when button is pressed
   sub_on_release:  script_do_nothing   # executes right when button is released
 
+  # an extra script that, if running, will stop the switch from toggling on button release.
+  sub_toggle_check: script_do_nothing
+
   # these will execute when ui_switch turns on and off, respectively.  like on_press and on_release above, built-in
   # automations still all run.  Lights changing can be disabled through the config light entity effects.  Relay
   # can be disabled by selecting always on or always off in the configuration select entity.  You can control the
@@ -48,6 +53,10 @@ substitutions:
 
   # allows status led to be blocked.  Currently only used on factory image to eliminate blinking during factory test.
   sub_blink_check: script_do_nothing
+
+  # modify transition length of lights
+  sub_transition_length: 333ms
+
 
 # https://esphome.io/components/esp8266.html
 esp8266:
@@ -85,6 +94,14 @@ wifi:
   # using fast_connect as default since it is required for hidden networks.
   fast_connect: true
 
+  ap:
+    ssid: ${friendly_name} Hotspot
+    ap_timeout: $wifi_ap_timeout
+
+
+# https://esphome.io/components/captive_portal.html
+captive_portal:
+
 
 # https://esphome.io/components/logger.html
 logger:
@@ -120,6 +137,7 @@ binary_sensor:
         input: true
         pullup: true
       inverted: true
+
     on_press:
         then:
             # store press time in ms
@@ -128,15 +146,21 @@ binary_sensor:
               id(global_press_time) = millis();
               id(sensor_press_duration).publish_state(0);
 
-              // toggle if button not disabled
-              if (!id(disable_button).state) {
+              // toggle if button is configured to toggle on press
+              if (id(select_button).state == "Toggle on Press") {
                 id(ui_switch).toggle(); }
           - script.execute: $sub_on_press
 
     on_release:
         then:
-            # set duration sensor
-          - lambda: id(sensor_press_duration).publish_state(millis() - id(global_press_time));
+          - lambda: |-
+              // set press duration sensor
+              id(sensor_press_duration).publish_state(millis() - id(global_press_time));
+
+              // toggle if configured to toggle on release and toggle check script is no longer running
+              if (  (id(select_button).state == "Toggle on Release") && !id($sub_toggle_check).is_running() ) {
+                id(ui_switch).toggle(); }
+
           - script.execute: $sub_on_release
 
 
@@ -152,6 +176,7 @@ switch:
     id: ui_switch
     restore_state: true
     optimistic: true
+
     on_turn_on:
       then:
         - lambda: |-
@@ -180,25 +205,15 @@ switch:
     entity_category: config
     disabled_by_default: $disable_entities
     icon: mdi:toggle-switch-off-outline
+
     on_turn_on:
       - lambda: |-
           id(kauf_api)->set_reboot_timeout(0);  // 0 disables auto rebooting and also new status led blinking.  doesn't stop current status led blinking
           id(kauf_api)->status_clear_warning(); // stops current status led blinking, timeout 0 keeps it from restarting
-      - script.execute: script_save_changes      
-    on_turn_off:
-      - lambda: id(kauf_api)->set_reboot_timeout(900000);
       - script.execute: script_save_changes
 
-  - platform: template
-    id: disable_button
-    name: $friendly_name Disable Button
-    optimistic: true
-    restore_state: true
-    entity_category: config
-    icon: mdi:toggle-switch-off-outline
-    on_turn_on:
-      - script.execute: script_save_changes
     on_turn_off:
+      - lambda: id(kauf_api)->set_reboot_timeout(900000);
       - script.execute: script_save_changes
 
 
@@ -239,18 +254,10 @@ output:
     id: pwm2_blue
     max_power: .35
 
-    # bit bucket output to connect fake lights to
-    # one channel per fake light is connected to bucket1 to trigger script
-    # other channels are connected to bucket2 to do nothing.  Only need script
-    # to run once per light change.
-    # https://esphome.io/components/output/template.html  
+    # Bit bucket output to connect configuration lights to.
+    # https://esphome.io/components/output/template.html
   - platform: template
-    id: bit_bucket1
-    type: float
-    write_action:
-      - script.execute: copy_vals
-  - platform: template
-    id: bit_bucket2
+    id: bit_bucket
     type: float
     write_action:
       - script.execute: script_do_nothing
@@ -262,18 +269,18 @@ light:
 
   - platform: rgb
     name: $friendly_name Small Light
-    id: kauf_light1
+    id: small_light
     red: pwm1_red
     green: pwm1_green
     blue: pwm1_blue
-    default_transition_length: 333ms
+    default_transition_length: $sub_transition_length
 
   - platform: rgb
     name: $friendly_name Small Off Value
-    id: kauf_light1_off
-    red: bit_bucket1
-    green: bit_bucket2
-    blue: bit_bucket2
+    id: small_light_off
+    red: bit_bucket
+    green: bit_bucket
+    blue: bit_bucket
     entity_category: config
     default_transition_length: 0s
     effects:
@@ -281,13 +288,16 @@ light:
           name: Disabled
           update_interval: never
           lambda: return;
-    
+    on_state:
+      then:
+        - script.execute: copy_vals
+
   - platform: rgb
     name: $friendly_name Small On Value
-    id: kauf_light1_on
-    red: bit_bucket1
-    green: bit_bucket2
-    blue: bit_bucket2
+    id: small_light_on
+    red: bit_bucket
+    green: bit_bucket
+    blue: bit_bucket
     entity_category: config
     default_transition_length: 0s
     effects:
@@ -295,21 +305,24 @@ light:
           name: Disabled
           update_interval: never
           lambda: return;
-    
+    on_state:
+      then:
+        - script.execute: copy_vals
+
   - platform: rgb
     name: $friendly_name Big Light
-    id: kauf_light2
+    id: big_light
     red: pwm2_red
     green: pwm2_green
     blue: pwm2_blue
-    default_transition_length: 333ms
+    default_transition_length: $sub_transition_length
 
   - platform: rgb
     name: $friendly_name Big Off Value
-    id: kauf_light2_off
-    red: bit_bucket1
-    green: bit_bucket2
-    blue: bit_bucket2
+    id: big_light_off
+    red: bit_bucket
+    green: bit_bucket
+    blue: bit_bucket
     entity_category: config
     default_transition_length: 0s
     effects:
@@ -317,13 +330,16 @@ light:
           name: Disabled
           update_interval: never
           lambda: return;
+    on_state:
+      then:
+        - script.execute: copy_vals
 
   - platform: rgb
     name: $friendly_name Big On Value
-    id: kauf_light2_on
-    red: bit_bucket1
-    green: bit_bucket2
-    blue: bit_bucket2
+    id: big_light_on
+    red: bit_bucket
+    green: bit_bucket
+    blue: bit_bucket
     entity_category: config
     default_transition_length: 0s
     effects:
@@ -331,6 +347,9 @@ light:
           name: Disabled
           update_interval: never
           lambda: return;
+    on_state:
+      then:
+        - script.execute: copy_vals
 
 
 # https://esphome.io/components/select/index.html
@@ -348,6 +367,7 @@ select:
     restore_value: true
     entity_category: config
     icon: mdi:progress-question
+
     on_value:
       then:
         - lambda: |-
@@ -355,7 +375,24 @@ select:
             else if ( x == "Always Off" )   { id(relay).turn_off(); }
             else if ( id(ui_switch).state ) { id(relay).turn_on();  }
             else      /* ui_switch off */   { id(relay).turn_off(); }
-        - script.execute: script_save_changes      
+        - script.execute: script_save_changes
+
+  - platform: template
+    name: $friendly_name Button Config
+    id: select_button
+    optimistic: true
+    options:
+      - Toggle on Press
+      - Disabled
+      - Toggle on Release
+    restore_value: true
+    entity_category: config
+    icon: mdi:toggle-switch-off-outline
+    forced_hash: 1841528035
+    forced_addr: 6
+    global_addr: global_forced_addr
+    on_value:
+      - script.execute: script_save_changes
 
 
 # https://esphome.io/guides/automations.html#script-component
@@ -370,14 +407,14 @@ script:
 
       # set LED red for ? ms then off for ? ms, then repeat
       - lambda: |-
-          auto call = id(kauf_light1).turn_on();
+          auto call = id(small_light).turn_on();
           call.set_brightness(1.0f);
           call.set_transition_length(0);
           call.set_rgb(1.0f, 0.0f, 0.0f);
           call.perform();
       - delay: 350ms
       - lambda: |-
-          auto call = id(kauf_light1).turn_off();
+          auto call = id(small_light).turn_off();
           call.set_transition_length(0);
           call.perform();
       - delay: 1150ms
@@ -406,76 +443,65 @@ script:
       - lambda: |-
 
           // switch is on, copy on values
-          if ( id(ui_switch).state && (kauf_light1_on->get_effect_name() != "Disabled") ) {
-            if ( kauf_light1_on->current_values.is_on() ) {
-              auto call = id(kauf_light1).turn_on();
-              call.set_brightness(kauf_light1_on->current_values.get_brightness());
-              call.set_rgb(kauf_light1_on->current_values.get_red(),
-                           kauf_light1_on->current_values.get_green(),
-                           kauf_light1_on->current_values.get_blue());
-              call.perform();
-            }
-            else {
-              auto call = id(kauf_light1).turn_off();
-              call.perform();
-            }
+          if ( id(ui_switch).state && (small_light_on->get_effect_name() != "Disabled") ) {
+            auto call = id(small_light).make_call();
+            call.set_state(small_light_on->current_values.is_on());
+            call.set_brightness(small_light_on->current_values.get_brightness());
+            call.set_rgb(small_light_on->current_values.get_red(),
+                         small_light_on->current_values.get_green(),
+                         small_light_on->current_values.get_blue());
+            call.perform();
           }
 
-          if ( id(ui_switch).state && (kauf_light2_on->get_effect_name() != "Disabled") ) {
-            if ( kauf_light2_on->current_values.is_on() ) {
-              auto call = id(kauf_light2).turn_on();
-              call.set_brightness(kauf_light2_on->current_values.get_brightness());
-              call.set_rgb(kauf_light2_on->current_values.get_red(),
-                           kauf_light2_on->current_values.get_green(),
-                           kauf_light2_on->current_values.get_blue());
-              call.perform();
-            }
-            else {
-              auto call = id(kauf_light2).turn_off();
-              call.perform();
-            }
+          if ( id(ui_switch).state && (big_light_on->get_effect_name() != "Disabled") ) {
+            auto call = id(big_light).make_call();
+            call.set_state(big_light_on->current_values.is_on());
+            call.set_brightness(big_light_on->current_values.get_brightness());
+            call.set_rgb(big_light_on->current_values.get_red(),
+                         big_light_on->current_values.get_green(),
+                         big_light_on->current_values.get_blue());
+            call.perform();
           }
 
           // switch is off, copy off values
-          if ( !id(ui_switch).state && (kauf_light1_off->get_effect_name() != "Disabled") ) {
-            if ( kauf_light1_off->current_values.is_on() ) {
-              auto call = id(kauf_light1).turn_on();
-              call.set_brightness(kauf_light1_off->current_values.get_brightness());
-              call.set_rgb(kauf_light1_off->current_values.get_red(),
-                           kauf_light1_off->current_values.get_green(),
-                           kauf_light1_off->current_values.get_blue());
-              call.perform();
-            }
-            else {
-              auto call = id(kauf_light1).turn_off();
-              call.perform();
-            }
+          if ( !id(ui_switch).state && (small_light_off->get_effect_name() != "Disabled") ) {
+            auto call = id(small_light).make_call();
+            call.set_state(small_light_off->current_values.is_on());
+            call.set_brightness(small_light_off->current_values.get_brightness());
+            call.set_rgb(small_light_off->current_values.get_red(),
+                         small_light_off->current_values.get_green(),
+                         small_light_off->current_values.get_blue());
+            call.perform();
           }
 
-          if ( !id(ui_switch).state && (kauf_light2_off->get_effect_name() != "Disabled") ) {
-            if ( kauf_light2_off->current_values.is_on() ) {
-              auto call = id(kauf_light2).turn_on();
-              call.set_brightness(kauf_light2_off->current_values.get_brightness());
-              call.set_rgb(kauf_light2_off->current_values.get_red(),
-                           kauf_light2_off->current_values.get_green(),
-                           kauf_light2_off->current_values.get_blue());
-              call.perform();
-            }
-            else {
-              auto call = id(kauf_light2).turn_off();
-              call.perform();
-            }
+          if ( !id(ui_switch).state && (big_light_off->get_effect_name() != "Disabled") ) {
+            auto call = id(big_light).make_call();
+            call.set_state(big_light_off->current_values.is_on());
+            call.set_brightness(big_light_off->current_values.get_brightness());
+            call.set_rgb(big_light_off->current_values.get_red(),
+                         big_light_off->current_values.get_green(),
+                         big_light_off->current_values.get_blue());
+            call.perform();
           }
 
 
 # https://esphome.io/components/button/index.html
-# https://esphome.io/components/button/restart.html
 button:
+
+    # https://esphome.io/components/button/restart.html
   - platform: restart
     id: restart_button
     name: $friendly_name Restart Firmware
     entity_category: diagnostic
     disabled_by_default: $disable_entities
+
+    # https://esphome.io/components/button/template.html
+  - platform: template
+    name: $friendly_name Restore Lights
+    entity_category: diagnostic
+    disabled_by_default: $disable_entities
+    on_press:
+      - script.execute: copy_vals
 
 
 # Send IP Address to HA
@@ -523,17 +549,3 @@ interval:
                   - script.is_running: blink_status_led
               then:
                 - script.execute: blink_status_led
-
-
-# Current reserved flash memory:
-#  00- 01:   Relay Switch
-#  02- 03:   UI Switch
-#  04- 05:   No HASS Switch
-#  06- 07:   Disable Button Switch
-#  10- 21:   Small Light
-#  22- 33:   Small Off Value Light
-#  34- 45:   Small On Value Light
-#  46- 57:   Big Light
-#  58- 69:   Big Off Value Light
-#  70- 81:   Big On Value Light
-#  82-107:   Wi-Fi Credentials
