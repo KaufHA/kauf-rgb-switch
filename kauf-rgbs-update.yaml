@@ -27,16 +27,3 @@ wifi:
 
   # add forced hash which isn't needed for dashboard import.  Allows saving wifi credentials across update.
   forced_hash: 2179908191
-
-
-button:
-  - platform: template
-    id: clear_wifi_button
-    name: $friendly_name Clear Wifi Credentials
-    entity_category: diagnostic
-    disabled_by_default: $disable_entities
-    on_press:
-      then:
-      - lambda: wifi_wificomponent->clear_stored_creds();
-      - delay: 2s
-      - button.press: restart_button  
