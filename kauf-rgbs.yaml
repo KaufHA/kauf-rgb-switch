@@ -112,7 +112,6 @@ wifi:
   global_addr: global_forced_addr
 
   ap:
-    ssid: ${friendly_name} Hotspot
     ap_timeout: $wifi_ap_timeout
 
 
