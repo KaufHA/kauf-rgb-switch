@@ -79,7 +79,7 @@ substitutions:
 globals:
   - id: current_color
     type: int
-    restore_value: no
+    restore_value: yes
     initial_value: '999'
 
 
