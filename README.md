@@ -99,6 +99,13 @@ When using kauf-rgbs.yaml as a package in the ESPHome dashboard, you can configu
 
 ***sub_transition_length*** - Change the default transition length for both lights.
 
+## Troubleshooting
+Any build errors can usually be resolved by upgrading the ESPHome dashboard to the latest version.  On the days when ESPHome updates are released, it may take us up to 24 hours to make necessary changes to our custom components during which time you may see build errors with the new version.  Please be patient.  
+  
+If you are still getting errors after upgrading the ESPHome dashboard to the latest version, try deleting the .esphome/packages and .esphome/external_components subfolders from within the ESPHome config directory.
+
+If you are stuck on ESPHome version 2022.3.1, you need to uninstall the Home Assistant Add-On, then reinstall using the [Official Add-On Repo](https://github.com/esphome/home-assistant-addon).
+
 
 # Links
 - [Purchase switches on Amazon](https://www.amazon.com/dp/B0B1CKWV7K)
