@@ -7,7 +7,7 @@ substitutions:
   # and edited.
 
   # defines whether current color will be saved to the config light entities.
-  save_on_state: 'true'    # default is to save selected color as on color of switch
+  save_on_state:  'true'   # default is to save selected color as on color of switch
   save_off_state: 'false'  # but don't save off state
 
   # initial_delay is hold time to first change, change_delay is hold time between subsequent changes.
@@ -74,7 +74,8 @@ substitutions:
   # substitutions to implement functionality, do not change these
   sub_on_press:     script_on_press
   sub_on_release:   script_on_release
-  sub_toggle_check: script_change_color
+  sub_toggle_check: script_dont_toggle
+
 
 globals:
   - id: current_color
@@ -89,7 +90,7 @@ esphome:
       - select.set:
           id: select_button
           option: "Toggle on Release"
-            
+
 
 text_sensor:
   - platform: homeassistant
@@ -109,13 +110,19 @@ script:
   - id: script_on_press
     then:
       - delay: $initial_delay
-
-        # decrement current color so that cycle begins on current color not next color.
-      - lambda: id(current_color)--;
-      - script.execute: script_change_color
+      - if:
+          condition:
+            lambda: return (id(ui_switch).state);
+          then:
+              # if switch is on, copy value from big light on first cycle
+            - script.execute: copy_val_to_light
+          else:
+            - script.execute: script_change_color
+      - script.execute: script_dont_toggle
 
   - id: script_on_release
     then:
+      - script.stop: copy_val_to_light
       - script.stop: script_change_color
       - if:
           condition:
@@ -306,7 +313,6 @@ script:
           call.set_transition_length(0);
           call.perform();
 
-
           // call home assistant service if set and switch is on
           if ( (strcmp("$hass_light_entity","no.ne") != 0) && id(ui_switch).state ) {
             api::HomeAssistantServiceCallAction<> *ha_service_call;
@@ -318,8 +324,40 @@ script:
             ha_service_call->play();
           }
 
-
-
         # delay and run again forever.  Stopped by on_release script.
       - delay: $change_delay
       - script.execute: script_change_color
+
+  - id: copy_val_to_light
+    then:
+      - lambda: |-
+
+          // dont do anything if entity not set
+          if (strcmp("$hass_light_entity","no.ne") == 0 ) { return; }
+
+          // if light is on, take color from big light current state
+          if ( id(ui_switch).state  ) {
+
+            int red   = id(big_light)->current_values.get_red()   * 255;
+            int green = id(big_light)->current_values.get_green() * 255;
+            int blue  = id(big_light)->current_values.get_blue()  * 255;
+
+            api::HomeAssistantServiceCallAction<> *ha_service_call;
+            ha_service_call = new api::HomeAssistantServiceCallAction<>(kauf_api, false);
+            ha_service_call->set_service("light.turn_on");
+            ha_service_call->add_data("entity_id", "$hass_light_entity");
+            ha_service_call->add_data("transition","0");
+            ha_service_call->add_data_template("rgb_color", "[" + to_string(red) + "," + to_string(green) + "," + to_string(blue) + "]");
+            ha_service_call->play();
+          }
+
+        # delay and then run normal script
+      - delay: $change_delay
+      - script.execute: script_change_color
+
+    # once button is held for initial delay, don't toggle until button is released again.
+  - id: script_dont_toggle
+    then:
+      - wait_until:
+          binary_sensor.is_off: main_button
+      - delay: 25ms
