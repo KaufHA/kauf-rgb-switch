@@ -71,7 +71,3 @@ The following options are available, and only one should be used.
 - **hass_ct_mireds_entity** and **hass_ct_mireds_attribute** - defines a Home Assistant entity attribute that will be used as the turn-on color temperature with the units being mireds.
 - **hass_ct_mireds_fixed** - defines a fixed mired value for the turn-on color temperature.
 
-**Still Toggle**
-
-This yaml file disables the default button press actions in order to toggle on release instead of press.  This is done by turning on the disable_button configuration switch.  If you already had the disable_button switch turned on because you don't want the RGB Switch button to toggle the switch, then this can be changed to 'false' and pressing the button will not toggle the switch.  The way this works will probably be changed in an update soon to make this substitution no longer necessary.
-
