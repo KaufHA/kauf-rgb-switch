@@ -75,15 +75,3 @@ The following options are available, and only one should be used.
 
 This yaml file disables the default button press actions in order to toggle on release instead of press.  This is done by turning on the disable_button configuration switch.  If you already had the disable_button switch turned on because you don't want the RGB Switch button to toggle the switch, then this can be changed to 'false' and pressing the button will not toggle the switch.  The way this works will probably be changed in an update soon to make this substitution no longer necessary.
 
-## kauf-rgbs-rotate-colors.yaml
-
-*This yaml file is deprecated and will likely be removed soon.  Please use **rotate-colors-sync-to-ha-light.yaml** instead, which has a superset of this file's features.*
-
-Include this yaml file as a package along with kauf-rgbs.yaml.  You should have the following in your local yaml file.  kauf-rgbs-rotate-colors.yaml must be include before kauf-rgbs.yaml.
-```
-packages:
-  rotate_colors: github://KaufHA/kauf-rgb-switch/yaml-features/kauf-rgbs-rotate-colors.yaml
-  Kauf.RGBSw: github://KaufHA/kauf-rgb-switch/kauf-rgbs.yaml
-```
-
-With this yaml file included, holding the button will cause the big light to rotate through the color wheel.  The selected color will be remembered as the turn-on or turn-off color automatically depending on the current state of the switch.  See substitution section of the yaml file for various configurations that can be changed with substitutions, including customizing the colors that are rotated through.
