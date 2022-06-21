@@ -10,6 +10,8 @@ substitutions:
   save_on_state:  'true'   # default is to save selected color as on color of switch
   save_off_state: 'false'  # but don't save off state
 
+  stay_switched: 'false'   # if true, will keep relay as switched
+
   # initial_delay is hold time to first change, change_delay is hold time between subsequent changes.
   initial_delay: 750ms
   change_delay:  750ms
@@ -92,6 +94,13 @@ esphome:
       - select.set:
           id: select_button
           option: "Toggle on Release"
+      - if:
+          condition:
+            lambda: return (!$stay_switched && (id(select_relay).state == "Switched") );
+          then:
+            - select.set:
+                id: select_relay
+                option: "Always On"
 
 
 text_sensor:
