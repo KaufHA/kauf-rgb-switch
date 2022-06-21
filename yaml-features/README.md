@@ -36,6 +36,10 @@ The substitutions **save_on_state** and **save_off_state** can be used to save t
 
 There are two different substitutions to change the hold-time for color changes.  **initial_delay** defines the amount of time before the cycle starts when first holding the button.  **change_delay** defines the amount of time between each color change once the cycle starts.
 
+**Stay Switched**
+
+By default, this yaml file will change the relay configuration to always on at boot.  This is because the yaml file is designed to control smart lights that always stay powered.  Setting the stay_switched substitution to true will keep the relay configured as switched at boot.
+
 **color_0 . . . color_11**
 
 Defines 12 colors that the RGB Switch will cycle through when the button is held.  By default, simply moves around the color wheel like the hours on a clock.  Colors can be customized by redefining the substitutions.  Values should be three comma-separated integers 'r,g,b'.
