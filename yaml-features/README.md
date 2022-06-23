@@ -4,8 +4,7 @@ These files can be compiled with the main kauf-rgbs.yaml file to add features.
 
 ## rotate-colors-sync-to-ha-light.yaml
 
-- **Rotate through colors by holding button** - switch and home assistant light entity both change color together.
-- **Sync a Home Assistant light entity** - the smart switch will automatically turn the bulb on and off via home assistant when the button is pressed, as well as cycling the light entity through the color wheel along with the RGB Switch's big light when the button is held.
+Primarily intended to allow the switch to control a separate smart light or a group of lights via Home Assistant.  Pressing the switch will toggle the light/group on and off.  Holding the switch will cause the switch and the light/group to cycle through colors.  This is all done by the switch without having to add any automations to Home Assistnt.  Using this yaml file without specifying a Home Assistant light entity just gives you the ability to cycle through colors on the switch by holding it down.
 
 ### Installation
 Include this yaml file as a package along with kauf-rgbs.yaml.  You should have the following in your local yaml file.  rotate-colors-sync-to-ha-light.yaml must be include before kauf-rgbs.yaml.
