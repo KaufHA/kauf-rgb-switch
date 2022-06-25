@@ -105,7 +105,7 @@ If one or more of the LED colors are not working, the LED board may have jostled
 
 ![Step 1](https://user-images.githubusercontent.com/89616381/175793362-fc314ea4-e336-4d86-813c-54c6e8141e6c.jpg)
 
-Once you have the front cover off, you'll see the LED board as in the image below.  The big light's are controlled through the terminal indicated by the orange arrow below.  Press down there to re-establish connection.
+Once you have the front cover off, you'll see the LED board as in the image below.  The big light LEDs are controlled through the terminal indicated by the orange arrow below.  Press down there to re-establish connection.
 
 ![Step 2](https://user-images.githubusercontent.com/89616381/175793457-2f06804a-17e9-46d8-a647-dcf889f1c646.jpg)
 
