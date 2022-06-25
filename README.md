@@ -100,14 +100,18 @@ When using kauf-rgbs.yaml as a package in the ESPHome dashboard, you can configu
 ***sub_transition_length*** - Change the default transition length for both lights.
 
 ## Troubleshooting
-Any build errors can usually be resolved by upgrading the ESPHome dashboard to the latest version.  On the days when ESPHome updates are released, it may take us up to 24 hours to make necessary changes to our custom components during which time you may see build errors with the new version.  Please be patient.  
-  
-If you are still getting errors after upgrading the ESPHome dashboard to the latest version, try deleting the .esphome/packages and .esphome/external_components subfolders from within the ESPHome config directory.
 
-If you are stuck on ESPHome version 2022.3.1, you need to uninstall the Home Assistant Add-On, then reinstall using the [Official Add-On Repo](https://github.com/esphome/home-assistant-addon).
+If one or more of the LED colors are not working, the LED board may have jostled loose during shipping.  The LED board pins can be pressed back down to restore connection by removing the plastic front cover of the light.  Just press down on the two tabs indicated by the orange arrows below.
+
+![Step 1](https://user-images.githubusercontent.com/89616381/175793362-fc314ea4-e336-4d86-813c-54c6e8141e6c.jpg)
+
+Once you have the front cover off, you'll see the LED board as in the image below.  The big light's are controlled through the terminal indicated by the orange arrow below.  Press down there to re-establish connection.
+
+More general troubleshooting ideas are located in the [Common repo's readme](https://github.com/KaufHA/common/blob/main/README.md) and [on our website](https://kaufha.com/troubleshooting/)
 
 
 # Links
+
 - [Purchase switches on Amazon](https://www.amazon.com/dp/B0B1CKWV7K)
 - [KAUF YouTube Channel](https://www.youtube.com/channel/UCjgziIA-lXmcqcMIm8HDnYg)
 - [KaufHA Website](https://kaufha.com/srf10)
