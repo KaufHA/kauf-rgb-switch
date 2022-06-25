@@ -107,6 +107,9 @@ If one or more of the LED colors are not working, the LED board may have jostled
 
 Once you have the front cover off, you'll see the LED board as in the image below.  The big light's are controlled through the terminal indicated by the orange arrow below.  Press down there to re-establish connection.
 
+![Step 2](https://user-images.githubusercontent.com/89616381/175793457-2f06804a-17e9-46d8-a647-dcf889f1c646.jpg)
+
+
 More general troubleshooting ideas are located in the [Common repo's readme](https://github.com/KaufHA/common/blob/main/README.md) and [on our website](https://kaufha.com/troubleshooting/)
 
 
