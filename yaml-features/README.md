@@ -100,9 +100,13 @@ substitions:
   hass_fan_entity: fan.kauf_office
 ```
 
-**Home Assistant Light Entity**
+**Hold Time**
 
-If set, the **hass_light_entity** indicates a light entity for the switch to turn on and off when not in fan mode, instead of just turning itself on and off.  All of the brightness and color temp substitutions described above for rotate-colors-sync-to-ha-light.yaml are also valid for this yaml file.
+The **hold_time** substitution defines the hold time required to enter fan mode.  750 ms by default.
+
+**Mode Time**
+
+The **mode_time** substitution defines the amount of time without a press that will cause the switch to exit fan mode.
 
 **Fan Speed Percentages**
 
@@ -115,3 +119,7 @@ The substitutions **speed_0_color, speed_1_color, speed_2_color, and speed_3_col
 **Mode Color**
 
 The **mode_color** substitution defines a color for the big light when the switch is in fan mode, defaults to red.  Needs to be 3 comma-separated integers between 0-255.
+
+**Home Assistant Light Entity**
+
+If set, the **hass_light_entity** indicates a light entity for the switch to turn on and off when not in fan mode, instead of just turning itself on and off.  All of the brightness and color temp substitutions described above for rotate-colors-sync-to-ha-light.yaml are also valid for this yaml file.
