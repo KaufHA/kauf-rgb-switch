@@ -90,9 +90,10 @@ esphome:
           option: "Toggle on Release"
 
 
-sensor:
+text_sensor:
   - platform: homeassistant
     id: hass_fan_state
+    name: HASS Fan State
     entity_id: $hass_fan_entity
     attribute: percentage
 
@@ -131,19 +132,19 @@ script:
                 call = id(small_light).turn_on();
 
                 // grab color based on speed
-                if (id(hass_fan_state).state == $speed_1_prcnt) {
+                if (strcmp(id(hass_fan_state).state.c_str(),"$speed_1_prcnt") == 0) {
                   int used_colors2[3] = {$speed_1_color};
                   red = used_colors2[0];
                   green = used_colors2[1];
                   blue = used_colors2[2];
                 }
-                else if (id(hass_fan_state).state == $speed_2_prcnt) {
+                else if (strcmp(id(hass_fan_state).state.c_str(),"$speed_2_prcnt") == 0) {
                   int used_colors2[3] = {$speed_2_color};
                   red = used_colors2[0];
                   green = used_colors2[1];
                   blue = used_colors2[2];
                 }
-                else if (id(hass_fan_state).state == $speed_3_prcnt) {
+                else if (strcmp(id(hass_fan_state).state.c_str(),"$speed_3_prcnt") == 0) {
                   int used_colors2[3] = {$speed_3_color};
                   red = used_colors2[0];
                   green = used_colors2[1];
@@ -172,21 +173,21 @@ script:
                 int red, green, blue, fan_speed;
 
                 // set speed and grab color based on current speed
-                if (id(hass_fan_state).state == $speed_1_prcnt) {
+                if (strcmp(id(hass_fan_state).state.c_str(),"$speed_1_prcnt") == 0) {
                   int used_colors2[3] = {$speed_2_color};
                   red = used_colors2[0];
                   green = used_colors2[1];
                   blue = used_colors2[2];
                   fan_speed = $speed_2_prcnt;
                 }
-                else if (id(hass_fan_state).state == $speed_2_prcnt) {
+                else if (strcmp(id(hass_fan_state).state.c_str(),"$speed_2_prcnt") == 0) {
                   int used_colors2[3] = {$speed_3_color};
                   red = used_colors2[0];
                   green = used_colors2[1];
                   blue = used_colors2[2];
                   fan_speed = $speed_3_prcnt;
                 }
-                else if (id(hass_fan_state).state == $speed_3_prcnt) {
+                else if (strcmp(id(hass_fan_state).state.c_str(),"$speed_3_prcnt") == 0) {
                   int used_colors2[3] = {$speed_0_color};
                   red = used_colors2[0];
                   green = used_colors2[1];
