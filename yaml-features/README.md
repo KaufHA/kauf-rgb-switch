@@ -6,6 +6,9 @@ These files can be compiled with the main kauf-rgbs.yaml file to add features.
 
 Primarily intended to allow the switch to control a separate smart light or a group of lights via Home Assistant.  Pressing the switch will toggle the light/group on and off.  Holding the switch will cause the switch and the light/group to cycle through colors.  This is all done by the switch without having to add any automations to Home Assistnt.  Using this yaml file without specifying a Home Assistant light entity just gives you the ability to cycle through colors on the switch by holding it down.
 
+### Video Walkthrough
+https://www.youtube.com/watch?v=GERPRWChSQw
+
 ### Installation
 Include this yaml file as a package along with kauf-rgbs.yaml.  You should have the following in your local yaml file.  rotate-colors-sync-to-ha-light.yaml must be include before kauf-rgbs.yaml.
 ```
@@ -74,3 +77,41 @@ The following options are available, and only one should be used.
 - **hass_ct_mireds_entity** and **hass_ct_mireds_attribute** - defines a Home Assistant entity attribute that will be used as the turn-on color temperature with the units being mireds.
 - **hass_ct_mireds_fixed** - defines a fixed mired value for the turn-on color temperature.
 
+## hold-for-fan-mode.yaml
+
+Hold the switch's button to put the switch into fan mode, wherein pressing the switch rotates through fan speeds instead of toggling a light on and off.  The fan mode times out after 5 seconds by default.
+
+### Installation
+Include this yaml file as a package along with kauf-rgbs.yaml.  You should have the following in your local yaml file.  hold-for-fan-mode.yaml must be include before kauf-rgbs.yaml.
+```
+packages:
+  fan_mode: github://bkaufx/kauf-rgb-switch/yaml-features/hold-for-fan-mode.yaml
+  Kauf.RGBSw: github://KaufHA/kauf-rgb-switch/kauf-rgbs.yaml
+```
+
+### Configuration
+
+**Home Assistant Fan Entity**
+
+The **hass_fan_entity** substitution indicates which fan entity to control.
+
+```
+substitions:
+  hass_fan_entity: fan.kauf_office
+```
+
+**Home Assistant Light Entity**
+
+If set, the **hass_light_entity** indicates a light entity for the switch to turn on and off when not in fan mode, instead of just turning itself on and off.  All of the brightness and color temp substitutions described above for rotate-colors-sync-to-ha-light.yaml are also valid for this yaml file.
+
+**Fan Speed Percentages**
+
+The substitutions **speed_0_prcnt, speed_1_prcnt, speed_2_prcnt, and speed_3_prcnt** allow configuration of four different speed percentages for the fan.  By default, the speeds are 0, 33, 67, and 100.
+
+**Fan Speed Colors**
+
+The substitutions **speed_0_color, speed_1_color, speed_2_color, and speed_3_color** allow configuration of four different speed colors for the four fan speeds.  By default, the colors are off, red, yellow, and green.  The colors need to be a string with three comma-separated RGB values, each being an integer from 0-255.  The small light will be changed to the appropriate color when the fan speed changes.
+
+**Mode Color**
+
+The **mode_color** substitution defines a color for the big light when the switch is in fan mode, defaults to red.  Needs to be 3 comma-separated integers between 0-255.
