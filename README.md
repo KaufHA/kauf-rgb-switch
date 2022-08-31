@@ -99,7 +99,7 @@ When using kauf-rgbs.yaml as a package in the ESPHome dashboard, you can configu
 
 ***sub_transition_length*** - Change the default transition length for both lights.
 
-## Troubleshooting
+# Troubleshooting
 
 If one or more of the LED colors are not working, the LED board may have jostled loose during shipping.  The LED board pins can be pressed back down to restore connection by removing the plastic front cover of the light.  Just press down on the two tabs indicated by the orange arrows below.  The tabs on either side of the plastic cover can be used, or you can press in all 4 at once using both hands.
 
