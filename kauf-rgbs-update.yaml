@@ -4,10 +4,7 @@ substitutions:
 
 
 packages:
-  kauf_rgbsw_base:
-    url: https://github.com/KaufHA/kauf-rgb-switch
-    files: kauf-rgbs.yaml
-    refresh: 0s
+  kauf_rgbsw_base: !include kauf-rgbs.yaml
 
 
 dashboard_import:

@@ -15,31 +15,23 @@ substitutions:
 
   # https://esphome.io/components/esphome.html#esphome-creators-project
   project_name: Kauf.RGBSw
-  project_ver_num: "1.314"
+  project_ver_num: "1.32"
   project_ver_let: y
 
   disable_entities: "true"     # set to "false" to have all entities show up in Home Assistant automatically
 
   wifi_ap_timeout: 2min        # default to 2 minute timeout for yaml file as package.
 
-  # substitutions for button press and release.
-  # any length of hold can be implemented with just on_press and on_release using the following directions.
-  #   * have a delay for the desired hold in the on_press script
-  #   * place actions in the on_press script after the delay to perform them while still holding the button
-  #   * place actions in the on_release script, with the condition that the on_press script is not running, to
-  #     perform them on release of the button.
-  #   * stop the on_press script in the on_release script so that on_press actions do not get executed if timer didn't run out.
-
-  # You can implement separate hold and press actions by:
-  #   on_press:   delay for desired length of hold then perform hold action
-  #   on_release: if on_press is still running, do press action and stop on_press script.
-
-  # the built-in on_press and on_release automations for the button will still do everything they normally do even
-  # when these substitutions are redefined.  Redefining these will not stop the ui switch from toggling.  The disable
-  # button configuration switch must be turned on to stop the button from toggling the ui switch.  The button press
-  # duration sensor will also still update even with these redefined.
-  sub_on_press:    script_do_nothing   # executes right when button is pressed
-  sub_on_release:  script_do_nothing   # executes right when button is released
+  # substitutions for scripts to execute based on button actions.
+  # the built-in automations for the button will still do everything they normally do even
+  # when these substitutions are redefined.  Redefining these will not stop the ui switch from toggling.
+  # The button configuration select entity must be set to disabled to stop the button from toggling the ui switch.
+  # The button press duration sensor will also still update even with these redefined.
+  sub_on_press:        script_do_nothing   # executes right when button is pressed
+  sub_on_release:      script_do_nothing   # executes right when button is released
+  sub_on_double_press: script_do_nothing   # executes when the button is double pressed
+  sub_on_single_press: script_do_nothing   # executes when the button is single pressed only, not held or double pressed
+  sub_on_hold:         script_do_nothing   # executes when the button is held for a threshold amount of time
 
   # an extra script that, if running, will stop the switch from toggling on button release.
   sub_toggle_check: script_do_nothing
@@ -56,6 +48,11 @@ substitutions:
 
   # modify transition length of lights
   sub_transition_length: 333ms
+
+  # button press substitutions
+  sub_double_press_max_gap: 333ms
+  sub_hold_time: 750ms
+  sub_button_sensor_duration: 500ms
 
 
 # https://esphome.io/components/esp8266.html
@@ -85,6 +82,17 @@ esphome:
   project:
     name: $project_name
     version: $project_ver_num($project_ver_let)
+  on_boot:
+      # set default values for template sensors, otherwise they are unknown.
+    - binary_sensor.template.publish:
+        id: button_single_press
+        state: OFF
+    - binary_sensor.template.publish:
+        id: button_double_press
+        state: OFF
+    - binary_sensor.template.publish:
+        id: button_hold
+        state: OFF
 
 
 # https://esphome.io/components/external_components.html
@@ -92,6 +100,7 @@ external_components:
   - source:
       type: git
       url: https://github.com/KaufHA/common
+      ref: v2022.09.03
     refresh: 0s
 
 
@@ -178,6 +187,73 @@ binary_sensor:
                 id(ui_switch).toggle(); }
 
           - script.execute: $sub_on_release
+
+    on_multi_click:
+
+      # definition for single press
+    - timing:
+        - ON for at most $sub_hold_time
+        - OFF for at least $sub_double_press_max_gap
+      invalid_cooldown: 2s
+      then:
+        - lambda: |-
+            id(button_single_press).publish_state(true);
+            // toggle if button is configured to toggle on single press
+            if (id(select_button).state == "Toggle on Single Press") {
+              id(ui_switch).toggle(); }
+            id($sub_on_single_press).execute();
+
+      # definition for double press
+    - timing:
+        - ON for at most $sub_hold_time
+        - OFF for at most $sub_double_press_max_gap
+        - ON for at least 1ms
+      then:
+        - lambda: |-
+            id(button_double_press).publish_state(true);
+            // toggle if button is configured to toggle on double press
+            if (id(select_button).state == "Toggle on Double Press") {
+              id(ui_switch).toggle(); }
+            id($sub_on_double_press).execute();
+
+      # definition for holding
+    - timing:
+        - ON for at least $sub_hold_time
+      then:
+        - lambda: |-
+            id(button_hold).publish_state(true);
+            // toggle if button is configured to toggle on hold
+            if (id(select_button).state == "Toggle on Hold") {
+              id(ui_switch).toggle(); }
+            id($sub_on_hold).execute();
+
+  - platform: template
+    name: $friendly_name Single Press
+    id: button_single_press
+    on_press:
+      - delay: $sub_button_sensor_duration
+      - binary_sensor.template.publish:
+          id: button_single_press
+          state: OFF
+
+  - platform: template
+    name: $friendly_name Double Press
+    id: button_double_press
+    on_press:
+      - delay: $sub_button_sensor_duration
+      - binary_sensor.template.publish:
+          id: button_double_press
+          state: OFF
+
+  - platform: template
+    name: $friendly_name Hold
+    id: button_hold
+    on_press:
+      - wait_until:
+          binary_sensor.is_off: main_button
+      - binary_sensor.template.publish:
+          id: button_hold
+          state: OFF
 
 
 # https://esphome.io/components/switch/index.html
@@ -431,6 +507,9 @@ select:
       - Toggle on Press
       - Disabled
       - Toggle on Release
+      - Toggle on Single Press
+      - Toggle on Double Press
+      - Toggle on Hold
     restore_value: true
     entity_category: config
     icon: mdi:toggle-switch-off-outline

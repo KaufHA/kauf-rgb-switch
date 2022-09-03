@@ -4,3 +4,4 @@
 /.esphome/
 /secrets.yaml
 kauf-rgbs-test.yaml
+dev-common

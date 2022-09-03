@@ -85,6 +85,19 @@ globals:
 esphome:
   on_boot:
     then:
+        # set default values for template sensors, otherwise they are unknown.
+        # this is needed because ESPHome is currently overwriting other on_boot section,
+        # which is believed to be a bug.  Need to debug or report as issue to ESPHome.
+        # potentially to do with https://github.com/esphome/esphome/pull/3510
+      - binary_sensor.template.publish:
+          id: button_single_press
+          state: OFF
+      - binary_sensor.template.publish:
+          id: button_double_press
+          state: OFF
+      - binary_sensor.template.publish:
+          id: button_hold
+          state: OFF
       - select.set:
           id: select_button
           option: "Toggle on Release"
@@ -207,12 +220,12 @@ script:
                 resp.service = "fan.turn_on";
 
                 HomeassistantServiceMap kv;
-                
+
                 if ( fan_speed == 0) {
                   resp.service = "fan.turn_off";
 
                   HomeassistantServiceMap kv;
-          
+
                   kv.key = "entity_id";
                   kv.value = "$hass_fan_entity";
                   resp.data.push_back(kv);
@@ -220,7 +233,7 @@ script:
                   resp.service = "fan.turn_on";
 
                   HomeassistantServiceMap kv;
-          
+
                   kv.key = "entity_id";
                   kv.value = "$hass_fan_entity";
                   resp.data.push_back(kv);
