@@ -50,6 +50,9 @@ If using the precompiled binary or kauf-rgbs.yaml as a package in the ESPHome da
 
 ***Button*** binary sensor entity - Indicates whether the switch's physical button is presently being pressed.
 
+***Double Press*** binary sensor entity - Goes high for 250ms after the switch's button is double pressed
+
+
 
 ## Configuration Entities
 
