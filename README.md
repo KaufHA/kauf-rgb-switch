@@ -48,7 +48,13 @@ If using the precompiled binary or kauf-rgbs.yaml as a package in the ESPHome da
 
 ## Sensor Entities
 
-***Button*** binary sensor entity - Indicates whether the switch's physical button is presently being pressed.
+***Button*** binary sensor entity - Indicates whether the switch's physical button is currently being pressed.
+
+***Double Press*** binary sensor entity - Goes high for 250ms after the switch's button is double pressed.
+
+***Hold*** binary sensor entity - Goes high when the switch's button is held for 750ms.  Stays high until the button is released.
+
+***Single Press*** binary sensor entity - Goes high for 250ms after the switch's button is single pressed.  A press only counts as a single press if it is less than 750ms (which would be a hold) and is not followed by a second press within 333ms (which would be a double press).
 
 
 ## Configuration Entities
@@ -65,7 +71,13 @@ If using the precompiled binary or kauf-rgbs.yaml as a package in the ESPHome da
 
 ***Relay Config*** select entity - Allows the relay to be configured to always on, always off, or switched.  Switched means the relay will provide power to the load only when the main switch entity is on.
 
-***Button Config*** select entity - Pressing the button will not toggle the main switch or relay if the Disabled option is selected.  The button binary sensor will still show when the button is pressed so the button can be used for a different automation.  Otherwise, either toggling on press or toggling on release can be selected.
+***Button Config*** select entity - Configures how the button is used to toggle the UI switch (and the relay if the relay is configured to be switched).
+- **Toggle on Press** - The UI switch toggles any time the button is physically pressed.  A double press will result in the UI switch being toggled twice.
+- **Disabled** - The button will not toggle the UI switch.
+- **Toggle on Release** - The UI switch toggles any time the button is physically released.
+- **Toggle on Single Press** - The UI switch toggles any time the button is single pressed (i.e., pressed once without being held and without a double press).
+- **Toggle on Double Press** - The UI switch toggles any time the button is double pressed.
+- **Toggle on Hold** - The UI switch toggles any time the button is held.
 
 
 ## Diagnostic Entities
@@ -91,6 +103,12 @@ When using kauf-rgbs.yaml as a package in the ESPHome dashboard, you can configu
 
 ***sub_on_release*** - Defines a script to be executed when the switch's button is released.
 
+***sub_on_single_press*** - Defines a script to be executed when the switch's button is single pressed.
+
+***sub_on_double_press*** - Defines a script to be executed when the switch's button is double pressed.
+
+***sub_on_hold*** - Defines a script to be executed when the switch's button is held.
+
 ***sub_on_turn_on*** - Defines a script to be executed when the switch is turned on.
 
 ***sub_on_turn_off*** - Defines a script to be executed when the switch is turned off.
@@ -98,6 +116,12 @@ When using kauf-rgbs.yaml as a package in the ESPHome dashboard, you can configu
 ***sub_blink_check*** - Defines a script that, if running, stops the error light from blinking.
 
 ***sub_transition_length*** - Change the default transition length for both lights.
+
+***sub_double_press_max_gap*** - A length of time defining the maximum gap between two presses that will result in a double press.  This also defines the delay after a press when a single press will be recognized, due to having to wait this long to distinguish between a single and a double press.
+
+***sub_hold_time*** - A length of time defining how long the button must be held to count as a hold.  This also defines the maximum amount of time for a single press and the maximum amount of time for the first press of a double press.
+
+***sub_button_sensor_duration*** - A length of tiem defining how long the single press and double press binary sensors will be high for whenever triggered.
 
 # Troubleshooting
 
