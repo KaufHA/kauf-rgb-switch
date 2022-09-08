@@ -15,7 +15,7 @@ substitutions:
 
   # https://esphome.io/components/esphome.html#esphome-creators-project
   project_name: Kauf.RGBSw
-  project_ver_num: "1.321"
+  project_ver_num: "1.322"
   project_ver_let: y
 
   disable_entities: "true"     # set to "false" to have all entities show up in Home Assistant automatically
@@ -27,11 +27,12 @@ substitutions:
   # when these substitutions are redefined.  Redefining these will not stop the ui switch from toggling.
   # The button configuration select entity must be set to disabled to stop the button from toggling the ui switch.
   # The button press duration sensor will also still update even with these redefined.
-  sub_on_press:        script_do_nothing   # executes right when button is pressed
-  sub_on_release:      script_do_nothing   # executes right when button is released
-  sub_on_double_press: script_do_nothing   # executes when the button is double pressed
-  sub_on_single_press: script_do_nothing   # executes when the button is single pressed only, not held or double pressed
-  sub_on_hold:         script_do_nothing   # executes when the button is held for a threshold amount of time
+  sub_on_press:                script_do_nothing # executes right when button is pressed
+  sub_on_release:              script_do_nothing # executes right when button is released
+  sub_on_double_press:         script_do_nothing # executes when the button is double pressed
+  sub_on_single_press:         script_do_nothing # executes when the button is single pressed only, not held or double pressed
+  sub_on_hold:                 script_do_nothing # executes when the button is held for a threshold amount of time
+  sub_on_release_without_hold: script_do_nothing # executes when the button is released after a press that is under the hold threshold.
 
   # an extra script that, if running, will stop the switch from toggling on button release.
   sub_toggle_check: script_do_nothing
@@ -54,12 +55,15 @@ substitutions:
   sub_hold_time: 750ms
   sub_button_sensor_duration: 500ms
 
-  # substitutions to sync hass entities to and from the switch
-  hass_entity_single_press_toggle: no.ne
-  hass_entity_double_press_toggle: no.ne
-  hass_entity_hold_toggle:         no.ne
-  hass_entity_control_small_light: no.ne
-  hass_entity_control_big_light:   no.ne
+  # substitutions to control hass entities with press combos
+  hass_entity_single_press_toggle:         no.ne
+  hass_entity_double_press_toggle:         no.ne
+  hass_entity_hold_toggle:                 no.ne
+  hass_entity_release_without_hold_toggle: no.ne
+
+  # substitutions to sync lights with hass entities instead of UI switch
+  hass_entity_control_small_light:         no.ne
+  hass_entity_control_big_light:           no.ne
 
 
 # https://esphome.io/components/esp8266.html
@@ -99,6 +103,9 @@ esphome:
         state: OFF
     - binary_sensor.template.publish:
         id: button_hold
+        state: OFF
+    - binary_sensor.template.publish:
+        id: button_release_without_hold
         state: OFF
 
 
@@ -237,6 +244,18 @@ binary_sensor:
             id(script_hass_toggle_hold).execute();
             id($sub_on_hold).execute();
 
+      # definition for release without hold
+    - timing:
+        - ON for at most $sub_hold_time
+      then:
+        - lambda: |-
+            id(button_release_without_hold).publish_state(true);
+            // toggle if button is configured to toggle on release without hold
+            if (id(select_button).state == "Toggle on Release Without Hold") {
+              id(ui_switch).toggle(); }
+            id(script_hass_toggle_release_without_hold).execute();
+            id($sub_on_release_without_hold).execute();
+
   - platform: template
     name: $friendly_name Single Press
     id: button_single_press
@@ -265,6 +284,14 @@ binary_sensor:
           id: button_hold
           state: OFF
 
+  - platform: template
+    name: $friendly_name Release Without Hold
+    id: button_release_without_hold
+    on_press:
+      - delay: $sub_button_sensor_duration
+      - binary_sensor.template.publish:
+          id: button_release_without_hold
+          state: OFF
 
 # https://esphome.io/components/switch/index.html
 switch:
@@ -520,6 +547,7 @@ select:
       - Toggle on Single Press
       - Toggle on Double Press
       - Toggle on Hold
+      - Toggle on Release Without Hold
     restore_value: true
     entity_category: config
     icon: mdi:toggle-switch-off-outline
@@ -656,6 +684,16 @@ script:
             data:
               entity_id: $hass_entity_hold_toggle
 
+  - id: script_hass_toggle_release_without_hold
+    then:
+      if:
+        condition:    # toggle if release without hold hass entity is set
+          lambda: return (strcmp("$hass_entity_release_without_hold_toggle","no.ne") != 0 );
+        then:
+          homeassistant.service:
+            service: homeassistant.toggle
+            data:
+              entity_id: $hass_entity_release_without_hold_toggle
 
 # https://esphome.io/components/button/index.html
 button:
