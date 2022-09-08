@@ -125,7 +125,7 @@ When using kauf-rgbs.yaml as a package in the ESPHome dashboard, you can configu
 
 # Troubleshooting
 
-If one or more of the LED colors are not working, the LED board may have jostled loose during shipping.  The LED board pins can be pressed back down to restore connection by removing the plastic front cover of the light.  Just press down on the two tabs indicated by the orange arrows below.  The tabs on either side of the plastic cover can be used, or you can press in all 4 at once using both hands.
+If one or more of the LED colors are not working, the LED board may have jostled loose during shipping.  The ground wire may also disconnect the LED board if pressed in too far.  The LED board pins can be pressed back down to restore connection by removing the plastic front cover of the light.  Just press down on the two tabs indicated by the orange arrows below.  The tabs on either side of the plastic cover can be used, or you can press in all 4 at once using both hands.
 
 ![Step 1](https://user-images.githubusercontent.com/89616381/175793362-fc314ea4-e336-4d86-813c-54c6e8141e6c.jpg)
 
