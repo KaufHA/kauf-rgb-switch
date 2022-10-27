@@ -39,21 +39,13 @@ wifi:
   # using fast_connect as default since it is required for hidden networks.
   fast_connect: true
 
+  ap:
 
-# https://esphome.io/components/logger.html
-logger:
-
-
-# https://esphome.io/components/api.html
-api:
-
-
-# https://esphome.io/components/ota.html
-ota:
-
-
-# https://esphome.io/components/web_server.html
-web_server:
+captive_portal:  # https://esphome.io/components/captive_portal.html
+logger:          # https://esphome.io/components/logger.html
+api:             # https://esphome.io/components/api.html
+ota:             # https://esphome.io/components/ota.html
+web_server:      # https://esphome.io/components/web_server.html
 
 
 # https://esphome.io/components/binary_sensor/index.html
