@@ -15,31 +15,24 @@ substitutions:
 
   # https://esphome.io/components/esphome.html#esphome-creators-project
   project_name: Kauf.RGBSw
-  project_ver_num: "1.311"
+  project_ver_num: "1.325"
   project_ver_let: l
 
   disable_entities: "true"     # set to "false" to have all entities show up in Home Assistant automatically
 
   wifi_ap_timeout: 2min        # default to 2 minute timeout for yaml file as package.
 
-  # substitutions for button press and release.
-  # any length of hold can be implemented with just on_press and on_release using the following directions.
-  #   * have a delay for the desired hold in the on_press script
-  #   * place actions in the on_press script after the delay to perform them while still holding the button
-  #   * place actions in the on_release script, with the condition that the on_press script is not running, to
-  #     perform them on release of the button.
-  #   * stop the on_press script in the on_release script so that on_press actions do not get executed if timer didn't run out.
-
-  # You can implement separate hold and press actions by:
-  #   on_press:   delay for desired length of hold then perform hold action
-  #   on_release: if on_press is still running, do press action and stop on_press script.
-
-  # the built-in on_press and on_release automations for the button will still do everything they normally do even
-  # when these substitutions are redefined.  Redefining these will not stop the ui switch from toggling.  The disable
-  # button configuration switch must be turned on to stop the button from toggling the ui switch.  The button press
-  # duration sensor will also still update even with these redefined.
-  sub_on_press:    script_do_nothing   # executes right when button is pressed
-  sub_on_release:  script_do_nothing   # executes right when button is released
+  # substitutions for scripts to execute based on button actions.
+  # the built-in automations for the button will still do everything they normally do even
+  # when these substitutions are redefined.  Redefining these will not stop the ui switch from toggling.
+  # The button configuration select entity must be set to disabled to stop the button from toggling the ui switch.
+  # The button press duration sensor will also still update even with these redefined.
+  sub_on_press:                script_do_nothing # executes right when button is pressed
+  sub_on_release:              script_do_nothing # executes right when button is released
+  sub_on_double_press:         script_do_nothing # executes when the button is double pressed
+  sub_on_single_press:         script_do_nothing # executes when the button is single pressed only, not held or double pressed
+  sub_on_hold:                 script_do_nothing # executes when the button is held for a threshold amount of time
+  sub_on_release_without_hold: script_do_nothing # executes when the button is released after a press that is under the hold threshold.
 
   # an extra script that, if running, will stop the switch from toggling on button release.
   sub_toggle_check: script_do_nothing
@@ -56,6 +49,25 @@ substitutions:
 
   # modify transition length of lights
   sub_transition_length: 333ms
+
+  # button press substitutions
+  sub_double_press_max_gap: 333ms
+  sub_hold_time: 750ms
+  sub_button_sensor_duration: 500ms
+
+  # substitutions to control hass entities with press combos
+  hass_entity_single_press_toggle:           no.ne
+  hass_entity_double_press_toggle:           no.ne
+  hass_entity_hold_toggle:                   no.ne
+  hass_entity_release_without_hold_toggle:   no.ne
+
+  # substitutions to sync lights with hass entities instead of UI switch
+  hass_entity_control_small_light:           no.ne
+  hass_entity_control_small_light_on_state:  'on'
+  hass_entity_control_small_light_off_state: 'off'
+  hass_entity_control_big_light:             no.ne
+  hass_entity_control_big_light_on_state:    'on'
+  hass_entity_control_big_light_off_state:   'off'
 
 
 # https://esphome.io/components/esp8266.html
@@ -79,6 +91,20 @@ esphome:
   project:
     name: $project_name
     version: $project_ver_num($project_ver_let)
+  on_boot:
+      # set default values for template sensors, otherwise they are unknown.
+    - binary_sensor.template.publish:
+        id: button_single_press
+        state: OFF
+    - binary_sensor.template.publish:
+        id: button_double_press
+        state: OFF
+    - binary_sensor.template.publish:
+        id: button_hold
+        state: OFF
+    - binary_sensor.template.publish:
+        id: button_release_without_hold
+        state: OFF
 
 
 # https://esphome.io/components/wifi.html
@@ -95,7 +121,6 @@ wifi:
   fast_connect: true
 
   ap:
-    ssid: ${friendly_name} Hotspot
     ap_timeout: $wifi_ap_timeout
 
 
@@ -121,7 +146,7 @@ ota:
 
 # https://esphome.io/components/web_server.html
 web_server:
-  local: true
+  # local: true
 
 
 # https://esphome.io/components/binary_sensor/index.html
@@ -163,6 +188,96 @@ binary_sensor:
 
           - script.execute: $sub_on_release
 
+    on_multi_click:
+
+      # definition for single press
+    - timing:
+        - ON for at most $sub_hold_time
+        - OFF for at least $sub_double_press_max_gap
+      invalid_cooldown: 1500ms
+      then:
+        - lambda: |-
+            id(button_single_press).publish_state(true);
+            // toggle if button is configured to toggle on single press
+            if (id(select_button).state == "Toggle on Single Press") {
+              id(ui_switch).toggle(); }
+            id(script_hass_toggle_single_press).execute();
+            id($sub_on_single_press).execute();
+
+      # definition for double press
+    - timing:
+        - ON for at most $sub_hold_time
+        - OFF for at most $sub_double_press_max_gap
+        - ON for at least 1ms
+      then:
+        - lambda: |-
+            id(button_double_press).publish_state(true);
+            // toggle if button is configured to toggle on double press
+            if (id(select_button).state == "Toggle on Double Press") {
+              id(ui_switch).toggle(); }
+            id(script_hass_toggle_double_press).execute();
+            id($sub_on_double_press).execute();
+
+      # definition for holding
+    - timing:
+        - ON for at least $sub_hold_time
+      then:
+        - lambda: |-
+            id(button_hold).publish_state(true);
+            // toggle if button is configured to toggle on hold
+            if (id(select_button).state == "Toggle on Hold") {
+              id(ui_switch).toggle(); }
+            id(script_hass_toggle_hold).execute();
+            id($sub_on_hold).execute();
+
+      # definition for release without hold
+    - timing:
+        - ON for at most $sub_hold_time
+      then:
+        - lambda: |-
+            id(button_release_without_hold).publish_state(true);
+            // toggle if button is configured to toggle on release without hold
+            if (id(select_button).state == "Toggle on Release Without Hold") {
+              id(ui_switch).toggle(); }
+            id(script_hass_toggle_release_without_hold).execute();
+            id($sub_on_release_without_hold).execute();
+
+  - platform: template
+    name: $friendly_name Single Press
+    id: button_single_press
+    on_press:
+      - delay: $sub_button_sensor_duration
+      - binary_sensor.template.publish:
+          id: button_single_press
+          state: OFF
+
+  - platform: template
+    name: $friendly_name Double Press
+    id: button_double_press
+    on_press:
+      - delay: $sub_button_sensor_duration
+      - binary_sensor.template.publish:
+          id: button_double_press
+          state: OFF
+
+  - platform: template
+    name: $friendly_name Hold
+    id: button_hold
+    on_press:
+      - wait_until:
+          binary_sensor.is_off: main_button
+      - binary_sensor.template.publish:
+          id: button_hold
+          state: OFF
+
+  - platform: template
+    name: $friendly_name Release Without Hold
+    id: button_release_without_hold
+    on_press:
+      - delay: $sub_button_sensor_duration
+      - binary_sensor.template.publish:
+          id: button_release_without_hold
+          state: OFF
 
 # https://esphome.io/components/switch/index.html
 switch:
@@ -385,12 +500,13 @@ select:
       - Toggle on Press
       - Disabled
       - Toggle on Release
+      - Toggle on Single Press
+      - Toggle on Double Press
+      - Toggle on Hold
+      - Toggle on Release Without Hold
     restore_value: true
     entity_category: config
     icon: mdi:toggle-switch-off-outline
-    forced_hash: 1841528035
-    forced_addr: 6
-    global_addr: global_forced_addr
     on_value:
       - script.execute: script_save_changes
 
@@ -441,9 +557,9 @@ script:
     mode: restart
     then:
       - lambda: |-
-
-          // switch is on, copy on values
-          if ( id(ui_switch).state && (small_light_on->get_effect_name() != "Disabled") ) {
+          // (small) switch is on, copy on values
+          if ( ( id(ui_switch).state                                                              && (strcmp("$hass_entity_control_small_light","no.ne") == 0 ) && (small_light_on->get_effect_name() != "Disabled")) ||
+               ((id(hass_small_light_state).state == "$hass_entity_control_small_light_on_state") && (strcmp("$hass_entity_control_small_light","no.ne") != 0 ) && (small_light_on->get_effect_name() != "Disabled"))  ) {
             auto call = id(small_light).make_call();
             call.set_state(small_light_on->current_values.is_on());
             call.set_brightness(small_light_on->current_values.get_brightness());
@@ -453,18 +569,9 @@ script:
             call.perform();
           }
 
-          if ( id(ui_switch).state && (big_light_on->get_effect_name() != "Disabled") ) {
-            auto call = id(big_light).make_call();
-            call.set_state(big_light_on->current_values.is_on());
-            call.set_brightness(big_light_on->current_values.get_brightness());
-            call.set_rgb(big_light_on->current_values.get_red(),
-                         big_light_on->current_values.get_green(),
-                         big_light_on->current_values.get_blue());
-            call.perform();
-          }
-
-          // switch is off, copy off values
-          if ( !id(ui_switch).state && (small_light_off->get_effect_name() != "Disabled") ) {
+          // (small) switch is off, copy off values
+          else if ( (!id(ui_switch).state                                                               && (strcmp("$hass_entity_control_small_light","no.ne") == 0 ) && (small_light_on->get_effect_name() != "Disabled")) ||
+                    ((id(hass_small_light_state).state == "$hass_entity_control_small_light_off_state") && (strcmp("$hass_entity_control_small_light","no.ne") != 0 ) && (small_light_on->get_effect_name() != "Disabled"))  ) {
             auto call = id(small_light).make_call();
             call.set_state(small_light_off->current_values.is_on());
             call.set_brightness(small_light_off->current_values.get_brightness());
@@ -474,7 +581,20 @@ script:
             call.perform();
           }
 
-          if ( !id(ui_switch).state && (big_light_off->get_effect_name() != "Disabled") ) {
+          // (big) switch is on, copy on values
+          if ( ( id(ui_switch).state                                                          && (strcmp("$hass_entity_control_big_light","no.ne") == 0 ) && (big_light_on->get_effect_name() != "Disabled")) ||
+               ((id(hass_big_light_state).state == "$hass_entity_control_big_light_on_state") && (strcmp("$hass_entity_control_big_light","no.ne") != 0 ) && (big_light_on->get_effect_name() != "Disabled"))  ) {
+            auto call = id(big_light).make_call();
+            call.set_state(big_light_on->current_values.is_on());
+            call.set_brightness(big_light_on->current_values.get_brightness());
+            call.set_rgb(big_light_on->current_values.get_red(),
+                         big_light_on->current_values.get_green(),
+                         big_light_on->current_values.get_blue());
+            call.perform();
+          }
+
+          else if ( (!id(ui_switch).state                                                          && (strcmp("$hass_entity_control_big_light","no.ne") == 0 ) && (big_light_on->get_effect_name() != "Disabled")) ||
+                    ((id(hass_big_light_state).state == "$hass_entity_control_big_light_on_state") && (strcmp("$hass_entity_control_big_light","no.ne") != 0 ) && (big_light_on->get_effect_name() != "Disabled"))  ) {
             auto call = id(big_light).make_call();
             call.set_state(big_light_off->current_values.is_on());
             call.set_brightness(big_light_off->current_values.get_brightness());
@@ -483,6 +603,50 @@ script:
                          big_light_off->current_values.get_blue());
             call.perform();
           }
+
+  - id: script_hass_toggle_single_press
+    then:
+      if:
+        condition:    # toggle if single press hass entity is set
+          lambda: return (strcmp("$hass_entity_single_press_toggle","no.ne") != 0 );
+        then:
+          homeassistant.service:
+            service: homeassistant.toggle
+            data:
+              entity_id: $hass_entity_single_press_toggle
+
+  - id: script_hass_toggle_double_press
+    then:
+      if:
+        condition:    # toggle if double press hass entity is set
+          lambda: return (strcmp("$hass_entity_double_press_toggle","no.ne") != 0 );
+        then:
+          homeassistant.service:
+            service: homeassistant.toggle
+            data:
+              entity_id: $hass_entity_double_press_toggle
+
+  - id: script_hass_toggle_hold
+    then:
+      if:
+        condition:    # toggle if hold hass entity is set
+          lambda: return (strcmp("$hass_entity_hold_toggle","no.ne") != 0 );
+        then:
+          homeassistant.service:
+            service: homeassistant.toggle
+            data:
+              entity_id: $hass_entity_hold_toggle
+
+  - id: script_hass_toggle_release_without_hold
+    then:
+      if:
+        condition:    # toggle if release without hold hass entity is set
+          lambda: return (strcmp("$hass_entity_release_without_hold_toggle","no.ne") != 0 );
+        then:
+          homeassistant.service:
+            service: homeassistant.toggle
+            data:
+              entity_id: $hass_entity_release_without_hold_toggle
 
 
 # https://esphome.io/components/button/index.html
@@ -512,6 +676,18 @@ text_sensor:
       name: $friendly_name IP Address
       entity_category: diagnostic
       disabled_by_default: $disable_entities
+  - platform: homeassistant
+    id: hass_small_light_state
+    entity_id: $hass_entity_control_small_light
+    on_value:
+      - delay: 1ms
+      - script.execute: copy_vals
+  - platform: homeassistant
+    id: hass_big_light_state
+    entity_id: $hass_entity_control_big_light
+    on_value:
+      - delay: 1ms
+      - script.execute: copy_vals
 
 
 # https://esphome.io/components/sensor/index.html

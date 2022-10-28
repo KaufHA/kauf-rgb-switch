@@ -15,7 +15,7 @@ substitutions:
 
   # https://esphome.io/components/esphome.html#esphome-creators-project
   project_name: Kauf.RGBSw
-  project_ver_num: "1.324"
+  project_ver_num: "1.325"
   project_ver_let: y
 
   disable_entities: "true"     # set to "false" to have all entities show up in Home Assistant automatically
@@ -56,14 +56,18 @@ substitutions:
   sub_button_sensor_duration: 500ms
 
   # substitutions to control hass entities with press combos
-  hass_entity_single_press_toggle:         no.ne
-  hass_entity_double_press_toggle:         no.ne
-  hass_entity_hold_toggle:                 no.ne
-  hass_entity_release_without_hold_toggle: no.ne
+  hass_entity_single_press_toggle:           no.ne
+  hass_entity_double_press_toggle:           no.ne
+  hass_entity_hold_toggle:                   no.ne
+  hass_entity_release_without_hold_toggle:   no.ne
 
   # substitutions to sync lights with hass entities instead of UI switch
-  hass_entity_control_small_light:         no.ne
-  hass_entity_control_big_light:           no.ne
+  hass_entity_control_small_light:           no.ne
+  hass_entity_control_small_light_on_state:  'on'
+  hass_entity_control_small_light_off_state: 'off'
+  hass_entity_control_big_light:             no.ne
+  hass_entity_control_big_light_on_state:    'on'
+  hass_entity_control_big_light_off_state:   'off'
 
 
 # https://esphome.io/components/esp8266.html
@@ -605,8 +609,8 @@ script:
     then:
       - lambda: |-
           // (small) switch is on, copy on values
-          if ( ( id(ui_switch).state                       && (strcmp("$hass_entity_control_small_light","no.ne") == 0 ) && (small_light_on->get_effect_name() != "Disabled")) ||
-               ((id(hass_small_light_state).state == "on") && (strcmp("$hass_entity_control_small_light","no.ne") != 0 ) && (small_light_on->get_effect_name() != "Disabled"))  ) {
+          if ( ( id(ui_switch).state                                                              && (strcmp("$hass_entity_control_small_light","no.ne") == 0 ) && (small_light_on->get_effect_name() != "Disabled")) ||
+               ((id(hass_small_light_state).state == "$hass_entity_control_small_light_on_state") && (strcmp("$hass_entity_control_small_light","no.ne") != 0 ) && (small_light_on->get_effect_name() != "Disabled"))  ) {
             auto call = id(small_light).make_call();
             call.set_state(small_light_on->current_values.is_on());
             call.set_brightness(small_light_on->current_values.get_brightness());
@@ -617,8 +621,8 @@ script:
           }
 
           // (small) switch is off, copy off values
-          else if ( (!id(ui_switch).state                        && (strcmp("$hass_entity_control_small_light","no.ne") == 0 ) && (small_light_on->get_effect_name() != "Disabled")) ||
-                    ((id(hass_small_light_state).state == "off") && (strcmp("$hass_entity_control_small_light","no.ne") != 0 ) && (small_light_on->get_effect_name() != "Disabled"))  ) {
+          else if ( (!id(ui_switch).state                                                               && (strcmp("$hass_entity_control_small_light","no.ne") == 0 ) && (small_light_on->get_effect_name() != "Disabled")) ||
+                    ((id(hass_small_light_state).state == "$hass_entity_control_small_light_off_state") && (strcmp("$hass_entity_control_small_light","no.ne") != 0 ) && (small_light_on->get_effect_name() != "Disabled"))  ) {
             auto call = id(small_light).make_call();
             call.set_state(small_light_off->current_values.is_on());
             call.set_brightness(small_light_off->current_values.get_brightness());
@@ -629,8 +633,8 @@ script:
           }
 
           // (big) switch is on, copy on values
-          if ( ( id(ui_switch).state                     && (strcmp("$hass_entity_control_big_light","no.ne") == 0 ) && (big_light_on->get_effect_name() != "Disabled")) ||
-               ((id(hass_big_light_state).state == "on") && (strcmp("$hass_entity_control_big_light","no.ne") != 0 ) && (big_light_on->get_effect_name() != "Disabled"))  ) {
+          if ( ( id(ui_switch).state                                                          && (strcmp("$hass_entity_control_big_light","no.ne") == 0 ) && (big_light_on->get_effect_name() != "Disabled")) ||
+               ((id(hass_big_light_state).state == "$hass_entity_control_big_light_on_state") && (strcmp("$hass_entity_control_big_light","no.ne") != 0 ) && (big_light_on->get_effect_name() != "Disabled"))  ) {
             auto call = id(big_light).make_call();
             call.set_state(big_light_on->current_values.is_on());
             call.set_brightness(big_light_on->current_values.get_brightness());
@@ -640,8 +644,8 @@ script:
             call.perform();
           }
 
-          else if ( (!id(ui_switch).state                      && (strcmp("$hass_entity_control_big_light","no.ne") == 0 ) && (big_light_on->get_effect_name() != "Disabled")) ||
-                    ((id(hass_big_light_state).state == "off") && (strcmp("$hass_entity_control_big_light","no.ne") != 0 ) && (big_light_on->get_effect_name() != "Disabled"))  ) {
+          else if ( (!id(ui_switch).state                                                          && (strcmp("$hass_entity_control_big_light","no.ne") == 0 ) && (big_light_on->get_effect_name() != "Disabled")) ||
+                    ((id(hass_big_light_state).state == "$hass_entity_control_big_light_on_state") && (strcmp("$hass_entity_control_big_light","no.ne") != 0 ) && (big_light_on->get_effect_name() != "Disabled"))  ) {
             auto call = id(big_light).make_call();
             call.set_state(big_light_off->current_values.is_on());
             call.set_brightness(big_light_off->current_values.get_brightness());
@@ -694,6 +698,7 @@ script:
             service: homeassistant.toggle
             data:
               entity_id: $hass_entity_release_without_hold_toggle
+
 
 # https://esphome.io/components/button/index.html
 button:
