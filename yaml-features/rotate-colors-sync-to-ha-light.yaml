@@ -12,8 +12,8 @@ substitutions:
 
   stay_switched: 'false'   # if true, will keep relay as switched
 
-  # initial_delay is hold time to first change, change_delay is hold time between subsequent changes.
-  initial_delay: 750ms
+  # sub_hold_time is hold time to first change, change_delay is hold time between subsequent changes.
+  # initial_delay: 750ms   # initial_delay substitution is replaced by sub_hold_time in kauf-rgbs.yaml
   change_delay:  750ms
 
   # colors to rotate through, needs to be 3 comma-separated int values between 0-255 (r,g,b)
@@ -74,11 +74,11 @@ substitutions:
 
   ############################################################################
   # substitutions to implement functionality, do not change these
-  sub_on_press:     script_on_press
+  sub_on_hold:      script_on_hold
   sub_on_release:   script_on_release
   sub_toggle_check: script_dont_toggle
-  sub_on_turn_on:   switch_to_light
-  sub_on_turn_off:  switch_to_light
+  sub_on_turn_on:   switch_to_light_on
+  sub_on_turn_off:  switch_to_light_off
 
 
 globals:
@@ -91,19 +91,6 @@ globals:
 esphome:
   on_boot:
     then:
-        # set default values for template sensors, otherwise they are unknown.
-        # this is needed because ESPHome is currently overwriting other on_boot section,
-        # which is believed to be a bug.  Need to debug or report as issue to ESPHome.
-        # potentially to do with https://github.com/esphome/esphome/pull/3510
-      - binary_sensor.template.publish:
-          id: button_single_press
-          state: OFF
-      - binary_sensor.template.publish:
-          id: button_double_press
-          state: OFF
-      - binary_sensor.template.publish:
-          id: button_hold
-          state: OFF
       - select.set:
           id: select_button
           option: "Toggle on Release"
@@ -131,29 +118,26 @@ text_sensor:
 
 script:
 
-  - id: script_on_press
+  - id: script_on_hold
     then:
-      - delay: $initial_delay
-      - if:
-          condition:
-            lambda: return (id(ui_switch).state);
-          then:
-              # if switch is on, copy value from big light on first cycle
-            - script.execute: copy_val_to_light
-          else:
-            - script.execute: script_change_color
-      - script.execute: script_dont_toggle
+      - lambda: |-
+          // call script_dont_toggle, keeping light from toggling when button is released
+          // if we are doing the color cycling thing.
+          id(script_dont_toggle).execute();
+
+          // if switch (and thus light) is on and hass_light_entity substitution is set
+          // then call copy_val_to_light first, which will then call script_change_color
+          // otherwise, just go straight to script_change_color
+          if ( id(ui_switch).state && (strcmp("$hass_light_entity","no.ne") != 0) ) {
+            id(copy_val_to_light).execute();
+          } else {
+            id(script_change_color).execute();
+          }
 
   - id: script_on_release
     then:
       - script.stop: copy_val_to_light
       - script.stop: script_change_color
-      - if:
-          condition:
-            - script.is_running: script_on_press  # if initial_delay timer has not expired yet.
-          then:
-            - script.stop: script_on_press
-            - script.execute: switch_to_light
 
   - id: script_change_color
     mode: restart
@@ -315,14 +299,11 @@ script:
       - delay: $change_delay
       - script.execute: script_change_color
 
-  - id: switch_to_light
+  - id: switch_to_light_off
     then:
       - lambda: |-
           // exit if light entity not set
-          if (strcmp("$hass_light_entity","no.ne") == 0) { return; }
-
-          // turn off home assistant light if switch off
-          if ( !id(ui_switch).state ) {
+          if (strcmp("$hass_light_entity","no.ne") != 0) {
 
             HomeassistantServiceResponse resp;
             resp.service = "light.turn_off";
@@ -336,8 +317,12 @@ script:
             global_api_server->send_homeassistant_service_call(resp);
           }
 
-          // turn on home assistant light if switch is on
-          else {
+  - id: switch_to_light_on
+    then:
+      - lambda: |-
+          // exit if light entity not set
+          if (strcmp("$hass_light_entity","no.ne") != 0) {
+
             HomeassistantServiceResponse resp;
             resp.service = "light.turn_on";
 

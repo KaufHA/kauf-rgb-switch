@@ -6,7 +6,7 @@ substitutions:
   # under name and friendly_name.  This file does not need to be downloaded
   # and edited.
 
-  hold_time: 750ms
+  # hold_time: 750ms   # hold_time substitution is replaced by sub_hold_time in kauf-rgbs.yaml
   mode_time: 5s
 
   hass_fan_entity: no.ne
@@ -17,14 +17,12 @@ substitutions:
   speed_2_prcnt: '67'
   speed_3_prcnt: '100'
 
-  speed_0_color: '0, 0, 0'
-  speed_1_color: '255, 0, 0'
+  speed_0_color: '0,     0, 0'
+  speed_1_color: '255,   0, 0'
   speed_2_color: '155, 155, 0'
-  speed_3_color: '0, 255, 0'
+  speed_3_color: '0,   255, 0'
 
   mode_color: '255,0,0'
-
-
 
   # default brightness values for just turning light on.
   # brightness needs to be int 0-255.
@@ -49,8 +47,7 @@ substitutions:
   #  (a) one "entity" value to adopt color/temp from a home assistant entity.
   #  (b) one "entity" value and its paired "attribute" value to adopt color/temp from a home assistant entity attribute.
   #  (c) one "fixed" value to always turn on light to a fixed color/temp
-  #  (d) keep all values as set below to always turn light on to a fixed 250 mireds.
-  #  (e) set the mireds_fixed value to "none" to keep the light's last set color
+  #  (d) DEFAULT: keep all values as "none" to not send a color temp with the turn_on command, keeping previous color temp.
   #
   # In any case, these will be arguments to home assistant's light.turn_on service, so the values need to comply with
   # the requirements of those arguments (either rgb_color, color_temp, or kelvin).
@@ -65,14 +62,14 @@ substitutions:
   hass_ct_mireds_attribute:      none
   hass_ct_mireds_fixed:          none
 
-
   ############################################################################
   # substitutions to implement functionality, do not change these
   sub_on_press:     script_on_press
-  sub_on_release:   script_on_release
+  sub_on_hold:      script_on_hold
+
   sub_toggle_check: script_dont_toggle
-  sub_on_turn_on:   switch_to_light
-  sub_on_turn_off:  switch_to_light
+  sub_on_turn_on:   switch_to_light_on
+  sub_on_turn_off:  switch_to_light_off
 
 
 globals:
@@ -80,27 +77,6 @@ globals:
     type: boolean
     restore_value: no
     initial_value: 'false'
-
-
-esphome:
-  on_boot:
-    then:
-        # set default values for template sensors, otherwise they are unknown.
-        # this is needed because ESPHome is currently overwriting other on_boot section,
-        # which is believed to be a bug.  Need to debug or report as issue to ESPHome.
-        # potentially to do with https://github.com/esphome/esphome/pull/3510
-      - binary_sensor.template.publish:
-          id: button_single_press
-          state: OFF
-      - binary_sensor.template.publish:
-          id: button_double_press
-          state: OFF
-      - binary_sensor.template.publish:
-          id: button_hold
-          state: OFF
-      - select.set:
-          id: select_button
-          option: "Toggle on Release"
 
 
 text_sensor:
@@ -113,162 +89,152 @@ text_sensor:
 
 script:
 
-  - id: script_on_press
+  - id: script_on_hold
     then:
+      - lambda: |-
+          // don't execute this lambda on hold if fan mode is already true
+          if ( id(fan_mode) ) { return; }
 
-      # if not in fan mode
-      - if:
-          condition:
-            lambda: return (!id(fan_mode));
-          then:
-            - delay: $hold_time
-            - lambda: |-
-                // set fan mode boolean, call don't toggle script to prevent light toggling in fan mode
-                id(fan_mode) = true;
-                id(script_dont_toggle).execute();
+          // set fan mode boolean, call don't toggle script to prevent light toggling in fan mode
+          id(fan_mode) = true;
+          id(script_dont_toggle).execute();
+          id(mode_timeout).execute();
 
-                // turn on big light to fan mode color
-                auto call = id(big_light).turn_on();
+          // turn on big light to fan mode color
+          auto call = id(big_light).turn_on();
 
-                // grab colors
-                int used_colors[3] = {$mode_color};
-                int red = used_colors[0];
-                int green = used_colors[1];
-                int blue = used_colors[2];
+          // grab colors
+          int used_colors[3] = {$mode_color};
+          int red = used_colors[0];
+          int green = used_colors[1];
+          int blue = used_colors[2];
 
-                // perform call to change big light color to mode color
-                call.set_rgb( (float) red/255.0f , (float) green/255.0f , (float) blue/255.0f );
-                call.set_transition_length(0);
-                call.perform();
+          // perform call to change big light color to mode color
+          call.set_rgb( (float) red/255.0f , (float) green/255.0f , (float) blue/255.0f );
+          call.set_transition_length(0);
+          call.perform();
 
-                // new call for small light based on fan speed
-                call = id(small_light).turn_on();
+          // new call for small light based on fan speed
+          call = id(small_light).turn_on();
 
-                // grab color based on speed
-                if (strcmp(id(hass_fan_state).state.c_str(),"$speed_1_prcnt") == 0) {
-                  int used_colors2[3] = {$speed_1_color};
-                  red = used_colors2[0];
-                  green = used_colors2[1];
-                  blue = used_colors2[2];
-                }
-                else if (strcmp(id(hass_fan_state).state.c_str(),"$speed_2_prcnt") == 0) {
-                  int used_colors2[3] = {$speed_2_color};
-                  red = used_colors2[0];
-                  green = used_colors2[1];
-                  blue = used_colors2[2];
-                }
-                else if (strcmp(id(hass_fan_state).state.c_str(),"$speed_3_prcnt") == 0) {
-                  int used_colors2[3] = {$speed_3_color};
-                  red = used_colors2[0];
-                  green = used_colors2[1];
-                  blue = used_colors2[2];
-                }
-                else {
-                  int used_colors2[3] = {$speed_0_color};
-                  red = used_colors2[0];
-                  green = used_colors2[1];
-                  blue = used_colors2[2];
-                }
+          // grab color based on speed
+          if (strcmp(id(hass_fan_state).state.c_str(),"$speed_1_prcnt") == 0) {
+            int used_colors2[3] = {$speed_1_color};
+            red = used_colors2[0];
+            green = used_colors2[1];
+            blue = used_colors2[2];
+          }
+          else if (strcmp(id(hass_fan_state).state.c_str(),"$speed_2_prcnt") == 0) {
+            int used_colors2[3] = {$speed_2_color};
+            red = used_colors2[0];
+            green = used_colors2[1];
+            blue = used_colors2[2];
+          }
+          else if (strcmp(id(hass_fan_state).state.c_str(),"$speed_3_prcnt") == 0) {
+            int used_colors2[3] = {$speed_3_color};
+            red = used_colors2[0];
+            green = used_colors2[1];
+            blue = used_colors2[2];
+          }
+          else {
+            int used_colors2[3] = {$speed_0_color};
+            red = used_colors2[0];
+            green = used_colors2[1];
+            blue = used_colors2[2];
+          }
 
-                // perform call to change small light color to speed color
-                if ( (red==0) && (green==0) && (blue==0) ) {
-                  call.set_state(false);
-                }
-                else {
-                  call.set_rgb( (float) red/255.0f , (float) green/255.0f , (float) blue/255.0f );
-                }
-                call.set_transition_length(0);
-                call.perform();
+          // perform call to change small light color to speed color
+          if ( (red==0) && (green==0) && (blue==0) ) {
+            call.set_state(false);
+          }
+          else {
+            call.set_rgb( (float) red/255.0f , (float) green/255.0f , (float) blue/255.0f );
+          }
+          call.set_transition_length(0);
+          call.perform();
 
-          else: # already in fan mode
-            - lambda: |-
-                //
-                int red, green, blue, fan_speed;
-
-                // set speed and grab color based on current speed
-                if (strcmp(id(hass_fan_state).state.c_str(),"$speed_1_prcnt") == 0) {
-                  int used_colors2[3] = {$speed_2_color};
-                  red = used_colors2[0];
-                  green = used_colors2[1];
-                  blue = used_colors2[2];
-                  fan_speed = $speed_2_prcnt;
-                }
-                else if (strcmp(id(hass_fan_state).state.c_str(),"$speed_2_prcnt") == 0) {
-                  int used_colors2[3] = {$speed_3_color};
-                  red = used_colors2[0];
-                  green = used_colors2[1];
-                  blue = used_colors2[2];
-                  fan_speed = $speed_3_prcnt;
-                }
-                else if (strcmp(id(hass_fan_state).state.c_str(),"$speed_3_prcnt") == 0) {
-                  int used_colors2[3] = {$speed_0_color};
-                  red = used_colors2[0];
-                  green = used_colors2[1];
-                  blue = used_colors2[2];
-                  fan_speed = $speed_0_prcnt;
-                }
-                else {
-                  int used_colors2[3] = {$speed_1_color};
-                  red = used_colors2[0];
-                  green = used_colors2[1];
-                  blue = used_colors2[2];
-                  fan_speed = $speed_1_prcnt;
-                }
-
-                // perform home assistant service call to set fan speed
-                HomeassistantServiceResponse resp;
-                resp.service = "fan.turn_on";
-
-                HomeassistantServiceMap kv;
-
-                if ( fan_speed == 0) {
-                  resp.service = "fan.turn_off";
-
-                  HomeassistantServiceMap kv;
-
-                  kv.key = "entity_id";
-                  kv.value = "$hass_fan_entity";
-                  resp.data.push_back(kv);
-                } else {
-                  resp.service = "fan.turn_on";
-
-                  HomeassistantServiceMap kv;
-
-                  kv.key = "entity_id";
-                  kv.value = "$hass_fan_entity";
-                  resp.data.push_back(kv);
-
-                  kv.key = "percentage";
-                  kv.value = to_string(fan_speed);
-                  resp.data.push_back(kv);
-                }
-
-                global_api_server->send_homeassistant_service_call(resp);
-
-                // perform call to change small light color to speed color
-                auto call = id(small_light).turn_on();
-
-                if ( (red==0) && (green==0) && (blue==0) ) {
-                  call.set_state(false);
-                }
-                else {
-                  call.set_rgb( (float) red/255.0f , (float) green/255.0f , (float) blue/255.0f );
-                }
-
-                call.set_transition_length(0);
-                call.perform();
-
-
-  - id: script_on_release
+  - id: script_on_press
     then:
       - script.execute: mode_timeout
 
-      # stop on press script if not in fan mode
-      - if:
-          condition:
-            lambda: return (!id(fan_mode));
-          then:
-            - script.stop: script_on_press
+      - lambda: |-
+          // don't execute this press lambda if not in fan mode
+          if ( !id(fan_mode) ) { return; }
+
+          int red, green, blue, fan_speed;
+
+          // set speed and grab color based on current speed
+          if (strcmp(id(hass_fan_state).state.c_str(),"$speed_1_prcnt") == 0) {
+            int used_colors2[3] = {$speed_2_color};
+            red = used_colors2[0];
+            green = used_colors2[1];
+            blue = used_colors2[2];
+            fan_speed = $speed_2_prcnt;
+          }
+          else if (strcmp(id(hass_fan_state).state.c_str(),"$speed_2_prcnt") == 0) {
+            int used_colors2[3] = {$speed_3_color};
+            red = used_colors2[0];
+            green = used_colors2[1];
+            blue = used_colors2[2];
+            fan_speed = $speed_3_prcnt;
+          }
+          else if (strcmp(id(hass_fan_state).state.c_str(),"$speed_3_prcnt") == 0) {
+            int used_colors2[3] = {$speed_0_color};
+            red = used_colors2[0];
+            green = used_colors2[1];
+            blue = used_colors2[2];
+            fan_speed = $speed_0_prcnt;
+          }
+          else {
+            int used_colors2[3] = {$speed_1_color};
+            red = used_colors2[0];
+            green = used_colors2[1];
+            blue = used_colors2[2];
+            fan_speed = $speed_1_prcnt;
+          }
+
+          // perform home assistant service call to set fan speed
+          HomeassistantServiceResponse resp;
+          resp.service = "fan.turn_on";
+
+          HomeassistantServiceMap kv;
+
+          if ( fan_speed == 0) {
+            resp.service = "fan.turn_off";
+
+            HomeassistantServiceMap kv;
+
+            kv.key = "entity_id";
+            kv.value = "$hass_fan_entity";
+            resp.data.push_back(kv);
+          } else {
+            resp.service = "fan.turn_on";
+
+            HomeassistantServiceMap kv;
+
+            kv.key = "entity_id";
+            kv.value = "$hass_fan_entity";
+            resp.data.push_back(kv);
+
+            kv.key = "percentage";
+            kv.value = to_string(fan_speed);
+            resp.data.push_back(kv);
+          }
+
+          global_api_server->send_homeassistant_service_call(resp);
+
+          // perform call to change small light color to speed color
+          auto call = id(small_light).turn_on();
+
+          if ( (red==0) && (green==0) && (blue==0) ) {
+            call.set_state(false);
+          }
+          else {
+            call.set_rgb( (float) red/255.0f , (float) green/255.0f , (float) blue/255.0f );
+          }
+
+          call.set_transition_length(0);
+          call.perform();
 
   - id: mode_timeout
     mode: restart
@@ -281,7 +247,6 @@ script:
             - lambda: id(fan_mode) = false;
             - script.execute: copy_vals
 
-
     # don't toggle light in fan mode
   - id: script_dont_toggle
     then:
@@ -289,14 +254,11 @@ script:
           lambda: return (!id(fan_mode));
       - delay: 25ms
 
-  - id: switch_to_light
+  - id: switch_to_light_off
     then:
       - lambda: |-
           // exit if light entity not set
-          if (strcmp("$hass_light_entity","no.ne") == 0) { return; }
-
-          // turn off home assistant light if switch off
-          if ( !id(ui_switch).state ) {
+          if (strcmp("$hass_light_entity","no.ne") != 0) {
 
             HomeassistantServiceResponse resp;
             resp.service = "light.turn_off";
@@ -310,8 +272,12 @@ script:
             global_api_server->send_homeassistant_service_call(resp);
           }
 
-          // turn on home assistant light if switch is on
-          else {
+  - id: switch_to_light_on
+    then:
+      - lambda: |-
+          // exit if light entity not set
+          if (strcmp("$hass_light_entity","no.ne") != 0) {
+
             HomeassistantServiceResponse resp;
             resp.service = "light.turn_on";
 

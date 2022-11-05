@@ -15,7 +15,7 @@ substitutions:
 
   # https://esphome.io/components/esphome.html#esphome-creators-project
   project_name: Kauf.RGBSw
-  project_ver_num: "1.325"
+  project_ver_num: "1.326"
   project_ver_let: y
 
   disable_entities: "true"     # set to "false" to have all entities show up in Home Assistant automatically
@@ -98,19 +98,20 @@ esphome:
     name: $project_name
     version: $project_ver_num($project_ver_let)
   on_boot:
-      # set default values for template sensors, otherwise they are unknown.
-    - binary_sensor.template.publish:
-        id: button_single_press
-        state: OFF
-    - binary_sensor.template.publish:
-        id: button_double_press
-        state: OFF
-    - binary_sensor.template.publish:
-        id: button_hold
-        state: OFF
-    - binary_sensor.template.publish:
-        id: button_release_without_hold
-        state: OFF
+    then:
+        # set default values for template sensors, otherwise they are unknown.
+      - binary_sensor.template.publish:
+          id: button_single_press
+          state: OFF
+      - binary_sensor.template.publish:
+          id: button_double_press
+          state: OFF
+      - binary_sensor.template.publish:
+          id: button_hold
+          state: OFF
+      - binary_sensor.template.publish:
+          id: button_release_without_hold
+          state: OFF
 
 
 # https://esphome.io/components/external_components.html
