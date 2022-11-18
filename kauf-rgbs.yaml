@@ -567,6 +567,7 @@ select:
       - Toggle on Double Press
       - Toggle on Hold
       - Toggle on Release Without Hold
+    initial_option: Toggle on Press
     restore_value: true
     entity_category: config
     icon: mdi:toggle-switch-off-outline
