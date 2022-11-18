@@ -15,7 +15,7 @@ substitutions:
 
   # https://esphome.io/components/esphome.html#esphome-creators-project
   project_name: Kauf.RGBSw
-  project_ver_num: "1.325"
+  project_ver_num: "1.33"
   project_ver_let: l
 
   disable_entities: "true"     # set to "false" to have all entities show up in Home Assistant automatically
@@ -92,19 +92,20 @@ esphome:
     name: $project_name
     version: $project_ver_num($project_ver_let)
   on_boot:
-      # set default values for template sensors, otherwise they are unknown.
-    - binary_sensor.template.publish:
-        id: button_single_press
-        state: OFF
-    - binary_sensor.template.publish:
-        id: button_double_press
-        state: OFF
-    - binary_sensor.template.publish:
-        id: button_hold
-        state: OFF
-    - binary_sensor.template.publish:
-        id: button_release_without_hold
-        state: OFF
+    then:
+        # set default values for template sensors, otherwise they are unknown.
+      - binary_sensor.template.publish:
+          id: button_single_press
+          state: OFF
+      - binary_sensor.template.publish:
+          id: button_double_press
+          state: OFF
+      - binary_sensor.template.publish:
+          id: button_hold
+          state: OFF
+      - binary_sensor.template.publish:
+          id: button_release_without_hold
+          state: OFF
 
 
 # https://esphome.io/components/wifi.html
@@ -146,7 +147,7 @@ ota:
 
 # https://esphome.io/components/web_server.html
 web_server:
-  # local: true
+  local: true
 
 
 # https://esphome.io/components/binary_sensor/index.html
@@ -241,6 +242,20 @@ binary_sensor:
               id(ui_switch).toggle(); }
             id(script_hass_toggle_release_without_hold).execute();
             id($sub_on_release_without_hold).execute();
+
+      # definition for 30s hold to clear credentials
+    - timing:
+        - ON for at least 30s
+      then:
+      - logger.log: "------------------->>>>>>>>>>>>>>>>>   HELD BUTTON 30 SECONDS, FORCING AP"
+
+      # overwrite software defined credentials to force ap to turn on.
+      - lambda: wifi::global_wifi_component->save_wifi_sta("initial_ap","asdfasdfasdfasdf");
+
+      # blink LED for 10s then restart to get captive portal to turn on.
+      - script.execute: blink_led
+      - delay: 10s
+      - button.press: restart_button
 
   - platform: template
     name: $friendly_name Single Press
@@ -541,6 +556,14 @@ script:
             - script.execute: blink_status_led # repeat as long as api not connected
           else:
             - script.execute: copy_vals        # restore set colors if api is connected
+
+    # blink LED forever.  Used when button is held to re-enable AP.  Stops blinking because plug restarts.
+  - id: blink_led
+    mode: queued
+    then:
+      - light.toggle: small_light
+      - delay: 333ms
+      - script.execute: blink_led
 
   - id: script_do_nothing
     then:

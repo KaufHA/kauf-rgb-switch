@@ -15,7 +15,7 @@ substitutions:
 
   # https://esphome.io/components/esphome.html#esphome-creators-project
   project_name: Kauf.RGBSw
-  project_ver_num: "1.327"
+  project_ver_num: "1.33"
   project_ver_let: y
 
   disable_entities: "true"     # set to "false" to have all entities show up in Home Assistant automatically
@@ -119,8 +119,8 @@ external_components:
   - source:
       type: git
       url: https://github.com/KaufHA/common
-      # ref: v2022.09.03
-    refresh: 0s
+      ref: v2022.11.18
+    refresh: 365250d
 
 
 # https://esphome.io/components/wifi.html
