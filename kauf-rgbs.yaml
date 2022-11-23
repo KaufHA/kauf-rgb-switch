@@ -15,10 +15,11 @@ substitutions:
 
   # https://esphome.io/components/esphome.html#esphome-creators-project
   project_name: Kauf.RGBSw
-  project_ver_num: "1.33"
+  project_ver_num: "1.331"
   project_ver_let: y
 
   disable_entities: "true"     # set to "false" to have all entities show up in Home Assistant automatically
+  disable_webserver: "false"   # set to "true" to disable webserver listening on port 80.
 
   wifi_ap_timeout: 2min        # default to 2 minute timeout for yaml file as package.
 
@@ -119,7 +120,7 @@ external_components:
   - source:
       type: git
       url: https://github.com/KaufHA/common
-      ref: v2022.11.18
+      ref: v2022.11.23
     refresh: 365250d
 
 
@@ -166,7 +167,7 @@ ota:
 # https://esphome.io/components/web_server.html
 web_server:
   local: true
-
+  disable: $disable_webserver
 
 # https://esphome.io/components/binary_sensor/index.html
 binary_sensor:
