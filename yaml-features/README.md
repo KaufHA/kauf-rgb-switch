@@ -10,11 +10,14 @@ Primarily intended to allow the switch to control a separate smart light or a gr
 https://www.youtube.com/watch?v=GERPRWChSQw
 
 ### Installation
-Include this yaml file as a package along with kauf-rgbs.yaml.  You should have the following in your local yaml file.  rotate-colors-sync-to-ha-light.yaml must be include before kauf-rgbs.yaml.
+Include this yaml file as a package along with kauf-rgbs.yaml.  You should have the following in your local yaml file.  rotate-colors-sync-to-ha-light.yaml must be include after kauf-rgbs.yaml.
+
+***Note:*** As of ESPHome 2022.2.0, packages are now properly imported in the order they are listed.  Therefore, the main kauf-rgbs.yaml now needs to be listed first, and then the rotate-colors yaml files is included second to overwrite certain aspects of the first.  This is a reversal from the previous requirement.
+
 ```
 packages:
-  rotate_colors: github://bkaufx/kauf-rgb-switch/yaml-features/rotate-colors-sync-to-ha-light.yaml
   Kauf.RGBSw: github://KaufHA/kauf-rgb-switch/kauf-rgbs.yaml
+  rotate_colors: github://bkaufx/kauf-rgb-switch/yaml-features/rotate-colors-sync-to-ha-light.yaml
 ```
 
 ### Configuration
