@@ -299,6 +299,7 @@ switch:
   - platform: gpio
     id: relay
     pin: GPIO15
+    restore_mode: RESTORE_DEFAULT_OFF
 
     # https://esphome.io/components/switch/template.html
   - platform: template
@@ -306,6 +307,7 @@ switch:
     id: ui_switch
     restore_state: true
     optimistic: true
+    restore_mode: RESTORE_DEFAULT_OFF
 
     on_turn_on:
       then:
@@ -335,6 +337,7 @@ switch:
     entity_category: config
     disabled_by_default: $disable_entities
     icon: mdi:toggle-switch-off-outline
+    restore_mode: RESTORE_DEFAULT_ON
 
     on_turn_on:
       - lambda: |-
@@ -404,6 +407,7 @@ light:
     green: pwm1_green
     blue: pwm1_blue
     default_transition_length: $sub_transition_length
+    restore_mode: RESTORE_DEFAULT_ON
 
   - platform: rgb
     name: $friendly_name Small Off Value
@@ -413,6 +417,7 @@ light:
     blue: bit_bucket
     entity_category: config
     default_transition_length: 0s
+    restore_mode: RESTORE_DEFAULT_ON
     effects:
       - lambda:
           name: Disabled
@@ -430,6 +435,7 @@ light:
     blue: bit_bucket
     entity_category: config
     default_transition_length: 0s
+    restore_mode: RESTORE_DEFAULT_ON
     effects:
       - lambda:
           name: Disabled
@@ -446,6 +452,7 @@ light:
     green: pwm2_green
     blue: pwm2_blue
     default_transition_length: $sub_transition_length
+    restore_mode: RESTORE_DEFAULT_ON
 
   - platform: rgb
     name: $friendly_name Big Off Value
@@ -455,6 +462,7 @@ light:
     blue: bit_bucket
     entity_category: config
     default_transition_length: 0s
+    restore_mode: RESTORE_DEFAULT_ON
     effects:
       - lambda:
           name: Disabled
@@ -472,6 +480,7 @@ light:
     blue: bit_bucket
     entity_category: config
     default_transition_length: 0s
+    restore_mode: RESTORE_DEFAULT_ON
     effects:
       - lambda:
           name: Disabled

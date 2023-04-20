@@ -15,7 +15,7 @@ substitutions:
 
   # https://esphome.io/components/esphome.html#esphome-creators-project
   project_name: Kauf.RGBSw
-  project_ver_num: "1.336"
+  project_ver_num: "1.337"
   project_ver_let: y
 
   disable_entities: "true"     # set to "false" to have all entities show up in Home Assistant automatically
@@ -121,7 +121,7 @@ external_components:
   - source:
       type: git
       url: https://github.com/KaufHA/common
-      ref: v2023.03.14
+      ref: v2023.04.18
     refresh: never
 
 
@@ -314,6 +314,7 @@ switch:
     forced_hash: 3551080420
     forced_addr: 0
     global_addr: global_forced_addr
+    restore_mode: RESTORE_DEFAULT_OFF
 
     # https://esphome.io/components/switch/template.html
   - platform: template
@@ -324,6 +325,7 @@ switch:
     forced_hash: 4098969537
     forced_addr: 2
     global_addr: global_forced_addr
+    restore_mode: RESTORE_DEFAULT_OFF
 
     on_turn_on:
       then:
@@ -356,6 +358,7 @@ switch:
     forced_hash: 1672474889
     forced_addr: 4
     global_addr: global_forced_addr
+    restore_mode: RESTORE_DEFAULT_ON
 
     on_turn_on:
       - lambda: |-
@@ -428,6 +431,8 @@ light:
     forced_hash: 3940173824
     forced_addr: 10
     global_addr: global_forced_addr
+    restore_mode: RESTORE_DEFAULT_ON
+
 
   - platform: rgb
     name: $friendly_name Small Off Value
@@ -440,6 +445,7 @@ light:
     forced_hash: 1452166609
     forced_addr: 22
     global_addr: global_forced_addr
+    restore_mode: RESTORE_DEFAULT_ON
     effects:
       - lambda:
           name: Disabled
@@ -460,6 +466,7 @@ light:
     forced_hash: 1530533365
     forced_addr: 34
     global_addr: global_forced_addr
+    restore_mode: RESTORE_DEFAULT_ON
     effects:
       - lambda:
           name: Disabled
@@ -479,6 +486,7 @@ light:
     forced_hash: 3403140939
     forced_addr: 46
     global_addr: global_forced_addr
+    restore_mode: RESTORE_DEFAULT_ON
 
   - platform: rgb
     name: $friendly_name Big Off Value
@@ -491,6 +499,7 @@ light:
     forced_hash: 730390778
     forced_addr: 58
     global_addr: global_forced_addr
+    restore_mode: RESTORE_DEFAULT_ON
     effects:
       - lambda:
           name: Disabled
@@ -511,6 +520,7 @@ light:
     forced_hash: 1638474020
     forced_addr: 70
     global_addr: global_forced_addr
+    restore_mode: RESTORE_DEFAULT_ON
     effects:
       - lambda:
           name: Disabled

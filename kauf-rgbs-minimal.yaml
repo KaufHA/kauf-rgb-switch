@@ -72,6 +72,7 @@ switch:
     id: relay
     pin: GPIO15
     name: $friendly_name
+    restore_mode: RESTORE_DEFAULT_OFF
 
 
 # PWM outputs for each LED channel
@@ -123,6 +124,7 @@ light:
     green: pwm1_green
     blue: pwm1_blue
     default_transition_length: 333ms
+    restore_mode: RESTORE_DEFAULT_ON
 
   - platform: rgb
     name: $friendly_name Big Light
@@ -131,3 +133,4 @@ light:
     green: pwm2_green
     blue: pwm2_blue
     default_transition_length: 333ms
+    restore_mode: RESTORE_DEFAULT_ON
