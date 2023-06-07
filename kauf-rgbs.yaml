@@ -433,7 +433,6 @@ light:
     global_addr: global_forced_addr
     restore_mode: RESTORE_DEFAULT_ON
 
-
   - platform: rgb
     name: $friendly_name Small Off Value
     id: small_light_off

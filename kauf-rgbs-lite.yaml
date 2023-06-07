@@ -15,7 +15,7 @@ substitutions:
 
   # https://esphome.io/components/esphome.html#esphome-creators-project
   project_name: Kauf.RGBSw
-  project_ver_num: "1.33"
+  project_ver_num: "1.339"
   project_ver_let: l
 
   disable_entities: "true"     # set to "false" to have all entities show up in Home Assistant automatically
@@ -33,6 +33,7 @@ substitutions:
   sub_on_single_press:         script_do_nothing # executes when the button is single pressed only, not held or double pressed
   sub_on_hold:                 script_do_nothing # executes when the button is held for a threshold amount of time
   sub_on_release_without_hold: script_do_nothing # executes when the button is released after a press that is under the hold threshold.
+  sub_wifi_reset_script:       script_wifi_reset # reset wifi credentials, overwrite to disable
 
   # an extra script that, if running, will stop the switch from toggling on button release.
   sub_toggle_check: script_do_nothing
@@ -247,15 +248,7 @@ binary_sensor:
     - timing:
         - ON for at least 30s
       then:
-      - logger.log: "------------------->>>>>>>>>>>>>>>>>   HELD BUTTON 30 SECONDS, FORCING AP"
-
-      # overwrite software defined credentials to force ap to turn on.
-      - lambda: wifi::global_wifi_component->save_wifi_sta("initial_ap","asdfasdfasdfasdf");
-
-      # blink LED for 10s then restart to get captive portal to turn on.
-      - script.execute: blink_led
-      - delay: 10s
-      - button.press: restart_button
+        - script.execute: $sub_wifi_reset_script
 
   - platform: template
     name: $friendly_name Single Press
@@ -528,6 +521,7 @@ select:
       - Toggle on Double Press
       - Toggle on Hold
       - Toggle on Release Without Hold
+    initial_option: Toggle on Press
     restore_value: true
     entity_category: config
     icon: mdi:toggle-switch-off-outline
@@ -583,6 +577,19 @@ script:
     then:
       - delay: 3s
       - lambda: global_preferences->sync();
+
+  - id: script_wifi_reset
+    mode: single
+    then:
+      - logger.log: "------------------->>>>>>>>>>>>>>>>>   HELD BUTTON 30 SECONDS, FORCING AP"
+
+      # overwrite software defined credentials to force ap to turn on.
+      - lambda: wifi::global_wifi_component->save_wifi_sta("initial_ap","asdfasdfasdfasdf");
+
+      # blink LED for 10s then restart to get captive portal to turn on.
+      - script.execute: blink_led
+      - delay: 10s
+      - button.press: restart_button
 
   # script to copy values from config lights to real lights per switch state
   - id: copy_vals
