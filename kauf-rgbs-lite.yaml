@@ -15,7 +15,7 @@ substitutions:
 
   # https://esphome.io/components/esphome.html#esphome-creators-project
   project_name: Kauf.RGBSw
-  project_ver_num: "1.339"
+  project_ver_num: "1.342"
   project_ver_let: l
 
   disable_entities: "true"     # set to "false" to have all entities show up in Home Assistant automatically
@@ -298,7 +298,6 @@ switch:
   - platform: template
     name: $friendly_name
     id: ui_switch
-    restore_state: true
     optimistic: true
     restore_mode: RESTORE_DEFAULT_OFF
 
@@ -326,7 +325,6 @@ switch:
     id: switch_no_hass
     name: $friendly_name No HASS
     optimistic: true
-    restore_state: true
     entity_category: config
     disabled_by_default: $disable_entities
     icon: mdi:toggle-switch-off-outline
