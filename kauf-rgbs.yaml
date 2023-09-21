@@ -15,7 +15,7 @@ substitutions:
 
   # https://esphome.io/components/esphome.html#esphome-creators-project
   project_name: Kauf.RGBSw
-  project_ver_num: "1.342"
+  project_ver_num: "1.343"
   project_ver_let: y
 
   disable_entities: "true"     # set to "false" to have all entities show up in Home Assistant automatically
@@ -121,7 +121,7 @@ external_components:
   - source:
       type: git
       url: https://github.com/KaufHA/common
-      ref: v2023.07.18
+      ref: v2023.09.21
     refresh: never
 
 
@@ -329,7 +329,9 @@ switch:
     on_turn_on:
       then:
         - lambda: |-
-            // waiting for select entity to have a state keeps the relay from toggling during boot
+            // Waiting for select entity to have a state keeps the relay from toggling during boot.
+            // Probably not needed after template switch priority was lowered, but keeping the check
+            // in case they do the same for template selects later.
             if ( id(select_relay).has_state() && ( id(select_relay).state != "Always Off" ) ) {
               id(relay).turn_on(); }
         - script.execute: copy_vals
@@ -339,7 +341,9 @@ switch:
     on_turn_off:
       then:
         - lambda: |-
-            // waiting for select entity to have a state keeps the relay from toggling during boot
+            // Waiting for select entity to have a state keeps the relay from toggling during boot.
+            // Probably not needed after template switch priority was lowered, but keeping the check
+            // in case they do the same for template selects later.
             if ( id(select_relay).has_state() && ( id(select_relay).state != "Always On" ) ) {
               id(relay).turn_off(); }
         - script.execute: copy_vals
