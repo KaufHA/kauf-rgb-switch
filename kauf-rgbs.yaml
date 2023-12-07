@@ -18,7 +18,7 @@ substitutions:
   project_ver_num: "1.346"
   project_ver_let: y
 
-  sub_4m: "true"
+  sub_4m: "false"
 
   disable_entities: "true"     # set to "false" to have all entities show up in Home Assistant automatically
   disable_webserver: "false"   # set to "true" to disable webserver listening on port 80.
