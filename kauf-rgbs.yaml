@@ -15,8 +15,10 @@ substitutions:
 
   # https://esphome.io/components/esphome.html#esphome-creators-project
   project_name: Kauf.RGBSw
-  project_ver_num: "1.345"
+  project_ver_num: "1.346"
   project_ver_let: y
+
+  sub_4m: "true"
 
   disable_entities: "true"     # set to "false" to have all entities show up in Home Assistant automatically
   disable_webserver: "false"   # set to "true" to disable webserver listening on port 80.
@@ -114,6 +116,9 @@ esphome:
       - binary_sensor.template.publish:
           id: button_release_without_hold
           state: OFF
+      - binary_sensor.template.publish:
+          id: sensor_4m
+          state: $sub_4m
 
 
 # https://esphome.io/components/external_components.html
@@ -305,6 +310,12 @@ binary_sensor:
       - binary_sensor.template.publish:
           id: button_release_without_hold
           state: OFF
+
+  - platform: template
+    name: $friendly_name 4MiB
+    id: sensor_4m
+    disabled_by_default: $disable_entities
+
 
 # https://esphome.io/components/switch/index.html
 switch:
