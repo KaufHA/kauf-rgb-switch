@@ -8,7 +8,7 @@ packages:
 
 
 dashboard_import:
-  package_import_url: github://KaufHA/kauf-rgb-switch/kauf-rgbs.yaml
+  package_import_url: $sub_import_url
 
 
 esphome:

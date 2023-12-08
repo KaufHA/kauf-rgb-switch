@@ -19,6 +19,7 @@ substitutions:
   project_ver_let: y
 
   sub_4m: "false"
+  sub_import_url: github://KaufHA/kauf-rgb-switch/kauf-rgbs.yaml
 
   disable_entities: "true"     # set to "false" to have all entities show up in Home Assistant automatically
   disable_webserver: "false"   # set to "true" to disable webserver listening on port 80.
@@ -174,6 +175,7 @@ ota:
 web_server:
   local: true
   disable: $disable_webserver
+  sensor_4m: $sub_4m
 
 # https://esphome.io/components/binary_sensor/index.html
 binary_sensor:
