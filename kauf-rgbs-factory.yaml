@@ -18,23 +18,23 @@ esphome:
 
           # set factory defaults for config lights:
           - lambda: |-
-              auto call = id(big_light_on).turn_on();
+              auto call = id(small_light_on).turn_on();
               call.set_brightness(1.0f);
               call.set_rgb(0.0f, 1.0f, 0.0f);           // small light green when switch is on
               call.perform();
           - lambda: |-
-              auto call = id(big_light_off).turn_on();
+              auto call = id(small_light_off).turn_on();
               call.set_brightness(0.75f);
               call.set_rgb(1.0f, 0.0f, 0.0f);           // small light red when switch is off
               call.perform();
 
           - lambda: |-
-              auto call = id(small_light_on).turn_on();
+              auto call = id(big_light_on).turn_on();
               call.set_brightness(1.0f);
               call.set_rgb(0.0f, 1.0f, 1.0f);           // big light cyan when switch is on
               call.perform();
           - lambda: |-
-              auto call = id(small_light_off).turn_on();
+              auto call = id(big_light_off).turn_on();
               call.set_brightness(0.25f);
               call.set_rgb(0.0f, 1.0f, 1.0f);           // big light cyan when switch is off but dimmer
               call.perform();
