@@ -54,7 +54,9 @@ If using the precompiled binary or kauf-rgbs.yaml as a package in the ESPHome da
 
 ***Hold*** binary sensor entity - Goes high when the switch's button is held for 750ms.  Stays high until the button is released.
 
-***Single Press*** binary sensor entity - Goes high for 250ms after the switch's button is single pressed.  A press only counts as a single press if it is less than 750ms (which would be a hold) and is not followed by a second press within 333ms (which would be a double press).
+***Release Without Hold*** binary sensor entity - Goes high when the switch's button is released if the button was held for less than 750ms, indicating that a press occured but not a hold.  This binary sensor is faster than the *Single Press* entity because this entity goes high immediately upon release rather than waiting 333ms to see if a double press will occur.
+
+***Single Press*** binary sensor entity - Goes high for 250ms after the switch's button is single pressed.  A press only counts as a single press if it is held for less than 750ms (otherwise it would be a hold) and is not followed by a second press within 333ms of release (otherwise it would be the first press of a double press).
 
 
 ## Configuration Entities
