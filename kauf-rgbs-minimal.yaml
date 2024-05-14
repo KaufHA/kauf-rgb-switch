@@ -7,7 +7,7 @@ substitutions:
 
   # https://esphome.io/components/esphome.html#esphome-creators-project
   project_name: Kauf.RGBSw
-  project_ver_num: "1.33"
+  project_ver_num: "1.353"
   project_ver_let: m
 
 
@@ -35,9 +35,6 @@ wifi:
 
   # default is 20, 17 is recommended.
   output_power: 17
-
-  # using fast_connect as default since it is required for hidden networks.
-  fast_connect: true
 
   ap:
 

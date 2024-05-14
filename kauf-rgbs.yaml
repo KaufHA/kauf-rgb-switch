@@ -15,7 +15,7 @@ substitutions:
 
   # https://esphome.io/components/esphome.html#esphome-creators-project
   project_name: Kauf.RGBSw
-  project_ver_num: "1.352"
+  project_ver_num: "1.353"
   project_ver_let: y
 
   sub_4m: "false"
@@ -127,7 +127,7 @@ external_components:
   - source:
       type: git
       url: https://github.com/KaufHA/common
-      ref: v2024.04.16
+      ref: v2024.05.13
     refresh: never
 
 
@@ -140,9 +140,6 @@ wifi:
 
   # default is 20, 17 is recommended.
   output_power: 17
-
-  # using fast_connect as default since it is required for hidden networks.
-  fast_connect: true
 
   forced_addr: 82
   global_addr: global_forced_addr
