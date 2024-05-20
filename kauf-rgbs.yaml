@@ -121,7 +121,7 @@ esphome:
           id: sensor_4m
           state: $sub_4m
 
-  min_version: 2024.5.0
+  min_version: 3000.5.0
 
 
 # https://esphome.io/components/external_components.html
