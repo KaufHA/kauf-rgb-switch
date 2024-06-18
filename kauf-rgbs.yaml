@@ -15,7 +15,7 @@ substitutions:
 
   # https://esphome.io/components/esphome.html#esphome-creators-project
   project_name: Kauf.RGBSw
-  project_ver_num: "1.355"
+  project_ver_num: "1.356"
   project_ver_let: y
 
   sub_4m: "false"
@@ -121,7 +121,7 @@ esphome:
           id: sensor_4m
           state: $sub_4m
 
-  min_version: 2024.5.0
+  min_version: 2024.6.0
 
 
 # https://esphome.io/components/external_components.html
@@ -129,9 +129,8 @@ external_components:
   - source:
       type: git
       url: https://github.com/KaufHA/common
-      ref: v2024.05.20
+      ref: v2024.06.18
     refresh: never
-
 
 
 # https://esphome.io/components/wifi.html
@@ -166,9 +165,13 @@ api:
 
 # https://esphome.io/components/ota.html
 ota:
+  platform: esphome
   on_error:
     then:
       - button.press: restart_button
+
+
+safe_mode:
 
 
 # https://esphome.io/components/web_server.html
