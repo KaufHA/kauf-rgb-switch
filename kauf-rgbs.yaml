@@ -15,7 +15,7 @@ substitutions:
 
   # https://esphome.io/components/esphome.html#esphome-creators-project
   project_name: Kauf.RGBSw
-  project_ver_num: "1.356"
+  project_ver_num: "1.357"
   project_ver_let: y
 
   sub_4m: "false"
@@ -176,9 +176,10 @@ safe_mode:
 
 # https://esphome.io/components/web_server.html
 web_server:
-  local: true
   disable: $disable_webserver
   sensor_4m: $sub_4m
+  js_url: https://kaufha.com/v2/www.js
+
 
 # https://esphome.io/components/binary_sensor/index.html
 binary_sensor:

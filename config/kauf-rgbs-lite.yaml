@@ -15,8 +15,10 @@ substitutions:
 
   # https://esphome.io/components/esphome.html#esphome-creators-project
   project_name: Kauf.RGBSw
-  project_ver_num: "1.353"
+  project_ver_num: "1.357"
   project_ver_let: l
+
+  sub_4m: "false"
 
   disable_entities: "true"     # set to "false" to have all entities show up in Home Assistant automatically
 
@@ -89,9 +91,11 @@ globals:
 # https://esphome.io/components/esphome.html
 esphome:
   name: $name
+
   project:
     name: $project_name
     version: $project_ver_num($project_ver_let)
+
   on_boot:
     then:
         # set default values for template sensors, otherwise they are unknown.
@@ -107,6 +111,11 @@ esphome:
       - binary_sensor.template.publish:
           id: button_release_without_hold
           state: OFF
+      - binary_sensor.template.publish:
+          id: sensor_4m
+          state: $sub_4m
+
+  min_version: 2024.6.0
 
 
 # https://esphome.io/components/wifi.html
@@ -138,14 +147,17 @@ api:
 
 # https://esphome.io/components/ota.html
 ota:
+  platform: esphome
   on_error:
     then:
       - button.press: restart_button
 
 
+safe_mode:
+
+
 # https://esphome.io/components/web_server.html
 web_server:
-  local: true
 
 
 # https://esphome.io/components/binary_sensor/index.html
@@ -283,6 +295,12 @@ binary_sensor:
       - binary_sensor.template.publish:
           id: button_release_without_hold
           state: OFF
+
+  - platform: template
+    name: $friendly_name 4MiB
+    id: sensor_4m
+    disabled_by_default: $disable_entities
+
 
 # https://esphome.io/components/switch/index.html
 switch:
