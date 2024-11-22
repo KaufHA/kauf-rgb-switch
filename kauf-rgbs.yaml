@@ -15,7 +15,7 @@ substitutions:
 
   # https://esphome.io/components/esphome.html#esphome-creators-project
   project_name: Kauf.RGBSw
-  project_ver_num: "1.362"
+  project_ver_num: "1.37"
   project_ver_let: y
 
   sub_4m: "false"
@@ -472,6 +472,13 @@ light:
     on_state:
       then:
         - script.execute: copy_vals
+    initial_state:
+      state: on
+      color_mode: rgb
+      red: 100%
+      green: 0%
+      blue: 0%
+      brightness: 75%
 
   - platform: rgb
     name: $friendly_name Small On Value
@@ -493,6 +500,13 @@ light:
     on_state:
       then:
         - script.execute: copy_vals
+    initial_state:
+      state: on
+      color_mode: rgb
+      red: 0%
+      green: 100%
+      blue: 0%
+      brightness: 100%
 
   - platform: rgb
     name: $friendly_name Big Light
@@ -526,6 +540,13 @@ light:
     on_state:
       then:
         - script.execute: copy_vals
+    initial_state:
+      state: on
+      color_mode: rgb
+      red: 0%
+      green: 100%
+      blue: 100%
+      brightness: 25%
 
   - platform: rgb
     name: $friendly_name Big On Value
@@ -547,6 +568,13 @@ light:
     on_state:
       then:
         - script.execute: copy_vals
+    initial_state:
+      state: on
+      color_mode: rgb
+      red: 0%
+      green: 100%
+      blue: 100%
+      brightness: 90%
 
 
 # https://esphome.io/components/select/index.html

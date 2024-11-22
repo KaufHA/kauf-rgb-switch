@@ -30,7 +30,7 @@ esphome:
 
           - lambda: |-
               auto call = id(big_light_on).turn_on();
-              call.set_brightness(1.0f);
+              call.set_brightness(0.9f);
               call.set_rgb(0.0f, 1.0f, 1.0f);           // big light cyan when switch is on
               call.perform();
           - lambda: |-
