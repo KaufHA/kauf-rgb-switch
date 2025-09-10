@@ -238,13 +238,12 @@ script:
           if ( (strcmp("$hass_light_entity","no.ne") != 0) && id(ui_switch).state ) {
             auto *api_server = esphome::api::global_api_server;
             if (api_server != nullptr) {
-              auto call = new esphome::api::HomeAssistantServiceCallAction<>(api_server, false);
-              call->set_service("light.turn_on");
-              call->add_data("entity_id", "$hass_light_entity");
-              call->add_data("transition", "0");
-              call->add_data_template("rgb_color", "[" + esphome::to_string(red) + "," + esphome::to_string(green) + "," + esphome::to_string(blue) + "]");
-              call->play();
-              delete call;
+              esphome::api::HomeAssistantServiceCallAction<> call(api_server, false);
+              call.set_service("light.turn_on");
+              call.add_data("entity_id", "$hass_light_entity");
+              call.add_data("transition", "0");
+              call.add_data_template("rgb_color", "[" + esphome::to_string(red) + "," + esphome::to_string(green) + "," + esphome::to_string(blue) + "]");
+              call.play();
             }
           }
 
@@ -268,13 +267,12 @@ script:
 
             auto *api_server = esphome::api::global_api_server;
             if (api_server != nullptr) {
-              auto call = new esphome::api::HomeAssistantServiceCallAction<>(api_server, false);
-              call->set_service("light.turn_on");
-              call->add_data("entity_id", "$hass_light_entity");
-              call->add_data("transition", "0");
-              call->add_data_template("rgb_color", "[" + to_string(red) + "," + to_string(green) + "," + to_string(blue) + "]");
-              call->play();
-              delete call;
+              esphome::api::HomeAssistantServiceCallAction<> call(api_server, false);
+              call.set_service("light.turn_on");
+              call.add_data("entity_id", "$hass_light_entity");
+              call.add_data("transition", "0");
+              call.add_data_template("rgb_color", "[" + to_string(red) + "," + to_string(green) + "," + to_string(blue) + "]");
+              call.play();
             }
           }
 
@@ -290,11 +288,10 @@ script:
 
             auto *api_server = esphome::api::global_api_server;
             if (api_server != nullptr) {
-              auto call = new esphome::api::HomeAssistantServiceCallAction<>(api_server, false);
-              call->set_service("light.turn_off");
-              call->add_data("entity_id", "$hass_light_entity");
-              call->play();
-              delete call;
+              esphome::api::HomeAssistantServiceCallAction<> call(api_server, false);
+              call.set_service("light.turn_off");
+              call.add_data("entity_id", "$hass_light_entity");
+              call.play();
             }
 
           }
@@ -308,41 +305,41 @@ script:
             auto *api_server = esphome::api::global_api_server;
             if (api_server != nullptr) {
 
-              auto call = new esphome::api::HomeAssistantServiceCallAction<>(api_server, false);
-              call->set_service("light.turn_on");
-              call->add_data("entity_id", "$hass_light_entity");
+              esphome::api::HomeAssistantServiceCallAction<> call(api_server, false);
+              call.set_service("light.turn_on");
+              call.add_data("entity_id", "$hass_light_entity");
 
               ///////////////////////////////////////////////////////////////////////////////////////////////////////////
               // add brightness if set
 
               // brightness entity set, attribute not set
               if ( (strcmp("$hass_brightness_entity","none")!=0) && (strcmp("$hass_brightness_attribute","none")==0) ) {
-                call->add_data_template("brightness", "{{ states(\"$hass_brightness_entity\") }}");
+                call.add_data_template("brightness", "{{ states(\"$hass_brightness_entity\") }}");
               }
 
               // brightness entity and attribute both set
               else if ( (strcmp("$hass_brightness_entity","none")!=0) && (strcmp("$hass_brightness_attribute","none")!=0) ) {
-                call->add_data_template("brightness", "{{ state_attr(\"$hass_brightness_entity\",\"$hass_brightness_attribute\") }}");
+                call.add_data_template("brightness", "{{ state_attr(\"$hass_brightness_entity\",\"$hass_brightness_attribute\") }}");
               }
 
               // fixed brightness set
               else if ( strcmp("$hass_brightness_fixed","none")!=0 ) {
-                call->add_data("brightness", "$hass_brightness_fixed");
+                call.add_data("brightness", "$hass_brightness_fixed");
               }
 
               // brightness_pct entity set, attribute not set
               else if ( (strcmp("$hass_brightness_pct_entity","none")!=0) && (strcmp("$hass_brightness_pct_attribute","none")==0) ) {
-                call->add_data_template("brightness_pct", "{{ states(\"$hass_brightness_pct_entity\") }}");
+                call.add_data_template("brightness_pct", "{{ states(\"$hass_brightness_pct_entity\") }}");
               }
 
               // brightness_pct entity and attribute both set
               else if ( (strcmp("$hass_brightness_pct_entity","none")!=0) && (strcmp("$hass_brightness_pct_attribute","none")!=0) ) {
-                call->add_data_template("brightness_pct", "{{ state_attr(\"$hass_brightness_pct_entity\",\"$hass_brightness_pct_attribute\") }}");
+                call.add_data_template("brightness_pct", "{{ state_attr(\"$hass_brightness_pct_entity\",\"$hass_brightness_pct_attribute\") }}");
               }
 
               // fixed brightness_pct set
               else if ( strcmp("$hass_brightness_pct_fixed","none")!=0 ) {
-                call->add_data("brightness_pct", "$hass_brightness_pct_fixed");
+                call.add_data("brightness_pct", "$hass_brightness_pct_fixed");
               }
 
 
@@ -351,51 +348,50 @@ script:
 
               // fixed kelvin set
               if ( strcmp("$hass_ct_kelvin_fixed","none") != 0 ) {
-                call->add_data("kelvin", "$hass_ct_kelvin_fixed");
+                call.add_data("kelvin", "$hass_ct_kelvin_fixed");
               }
 
               // mireds entity set, attribute not set
               else if ( (strcmp("$hass_ct_kelvin_entity","none")!=0) && (strcmp("$hass_ct_kelvin_attribute","none")==0) ) {
-                call->add_data_template("kelvin", "{{ states(\"$hass_ct_kelvin_entity\") }}");
+                call.add_data_template("kelvin", "{{ states(\"$hass_ct_kelvin_entity\") }}");
               }
 
               // mireds entity and attribute both set
               else if ( (strcmp("$hass_ct_kelvin_entity","none")!=0) && (strcmp("$hass_ct_kelvin_attribute","none")!=0) ) {
-                call->add_data_template("kelvin", "{{ state_attr(\"$hass_ct_kelvin_entity\",\"$hass_ct_kelvin_attribute\") }}");
+                call.add_data_template("kelvin", "{{ state_attr(\"$hass_ct_kelvin_entity\",\"$hass_ct_kelvin_attribute\") }}");
               }
 
               // fixed rgb set
               else if ( strcmp("$hass_rgb_fixed","none")!=0 ) {
-                call->add_data_template("rgb_color", "$hass_rgb_fixed");
+                call.add_data_template("rgb_color", "$hass_rgb_fixed");
               }
 
               // rgb entity set, attribute not set
               else if ( (strcmp("$hass_rgb_entity","none")!=0) && (strcmp("$hass_rgb_attribute","none")==0) ) {
-                call->add_data_template("rgb_color", "{{ states(\"$hass_rgb_entity\") }}");
+                call.add_data_template("rgb_color", "{{ states(\"$hass_rgb_entity\") }}");
               }
 
               // rgb entity and attribute both set
               else if ( (strcmp("$hass_rgb_entity","none")!=0) && (strcmp("$hass_rgb_attribute","none")!=0) ) {
-                call->add_data_template("rgb_color", "{{ state_attr(\"$hass_rgb_entity\",\"$hass_rgb_attribute\") }}");
+                call.add_data_template("rgb_color", "{{ state_attr(\"$hass_rgb_entity\",\"$hass_rgb_attribute\") }}");
               }
 
               // mireds entity set, attribute not set
               else if ( (strcmp("$hass_ct_mireds_entity","none")!=0) && (strcmp("$hass_ct_mireds_attribute","none")==0) ) {
-                call->add_data_template("color_temp", "{{ states(\"$hass_ct_mireds_entity\") }}");
+                call.add_data_template("color_temp", "{{ states(\"$hass_ct_mireds_entity\") }}");
               }
 
               // mireds entity and attribute both set
               else if ( (strcmp("$hass_ct_mireds_entity","none")!=0) && (strcmp("$hass_ct_mireds_attribute","none")!=0) ) {
-                call->add_data_template("color_temp", "{{ state_attr(\"$hass_ct_mireds_entity\",\"$hass_ct_mireds_attribute\") }}");
+                call.add_data_template("color_temp", "{{ state_attr(\"$hass_ct_mireds_entity\",\"$hass_ct_mireds_attribute\") }}");
               }
 
               // fixed mireds set (last since set by default, that way any other option set will override)
               else if ( strcmp("$hass_ct_mireds_fixed","none")!=0 ) {
-                call->add_data("color_temp", "$hass_ct_mireds_fixed");
+                call.add_data("color_temp", "$hass_ct_mireds_fixed");
               }
 
-              call->play();
-              delete call;
+              call.play();
             }
           }
 
