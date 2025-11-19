@@ -15,7 +15,7 @@ substitutions:
 
   # https://esphome.io/components/esphome.html#esphome-creators-project
   project_name: Kauf.RGBSw
-  project_ver_num: "1.381"
+  project_ver_num: "1.382"
   project_ver_let: y
 
   sub_4m: "false"
@@ -122,7 +122,7 @@ esphome:
           id: sensor_4m
           state: $sub_4m
 
-  min_version: 2025.10.0
+  min_version: 2025.11.0
 
 
 # https://esphome.io/components/external_components.html
@@ -130,7 +130,7 @@ external_components:
   - source:
       type: git
       url: https://github.com/KaufHA/common
-      ref: v2025.10.15
+      ref: v2025.11.19
     refresh: never
 
 
@@ -150,6 +150,7 @@ wifi:
   ap:
     ap_timeout: $wifi_ap_timeout
 
+  min_auth_mode: WPA2
 
 # https://esphome.io/components/captive_portal.html
 captive_portal:
@@ -207,7 +208,7 @@ binary_sensor:
               id(sensor_press_duration).publish_state(0);
 
               // toggle if button is configured to toggle on press
-              if (id(select_button).state == "Toggle on Press") {
+              if (strcmp(id(select_button).current_option(), "Toggle on Press") == 0) {
                 id(ui_switch).toggle(); }
           - script.execute: $sub_on_press
 
@@ -218,7 +219,7 @@ binary_sensor:
               id(sensor_press_duration).publish_state(millis() - id(global_press_time));
 
               // toggle if configured to toggle on release and toggle check script is no longer running
-              if (  (id(select_button).state == "Toggle on Release") && !id($sub_toggle_check).is_running() ) {
+              if ( (strcmp(id(select_button).current_option(), "Toggle on Release") == 0) && !id($sub_toggle_check).is_running() ) {
                 id(ui_switch).toggle(); }
 
           - script.execute: $sub_on_release
@@ -234,7 +235,7 @@ binary_sensor:
         - lambda: |-
             id(button_single_press).publish_state(true);
             // toggle if button is configured to toggle on single press
-            if (id(select_button).state == "Toggle on Single Press") {
+            if (strcmp(id(select_button).current_option(), "Toggle on Single Press") == 0) {
               id(ui_switch).toggle(); }
             id(script_hass_toggle_single_press).execute();
             id($sub_on_single_press).execute();
@@ -248,7 +249,7 @@ binary_sensor:
         - lambda: |-
             id(button_double_press).publish_state(true);
             // toggle if button is configured to toggle on double press
-            if (id(select_button).state == "Toggle on Double Press") {
+            if (strcmp(id(select_button).current_option(), "Toggle on Double Press") == 0) {
               id(ui_switch).toggle(); }
             id(script_hass_toggle_double_press).execute();
             id($sub_on_double_press).execute();
@@ -260,7 +261,7 @@ binary_sensor:
         - lambda: |-
             id(button_hold).publish_state(true);
             // toggle if button is configured to toggle on hold
-            if (id(select_button).state == "Toggle on Hold") {
+            if (strcmp(id(select_button).current_option(), "Toggle on Hold") == 0) {
               id(ui_switch).toggle(); }
             id(script_hass_toggle_hold).execute();
             id($sub_on_hold).execute();
@@ -272,7 +273,7 @@ binary_sensor:
         - lambda: |-
             id(button_release_without_hold).publish_state(true);
             // toggle if button is configured to toggle on release without hold
-            if (id(select_button).state == "Toggle on Release Without Hold") {
+            if (strcmp(id(select_button).current_option(), "Toggle on Release Without Hold") == 0) {
               id(ui_switch).toggle(); }
             id(script_hass_toggle_release_without_hold).execute();
             id($sub_on_release_without_hold).execute();
@@ -352,7 +353,7 @@ switch:
             // Waiting for select entity to have a state keeps the relay from toggling during boot.
             // Probably not needed after template switch priority was lowered, but keeping the check
             // in case they do the same for template selects later.
-            if ( id(select_relay).has_state() && ( id(select_relay).state != "Always Off" ) ) {
+            if ( id(select_relay).has_state() && ( strcmp(id(select_relay).current_option(), "Always Off" ) != 0) ) {
               id(relay).turn_on(); }
         - script.execute: copy_vals
         - script.execute: script_save_changes
@@ -364,7 +365,7 @@ switch:
             // Waiting for select entity to have a state keeps the relay from toggling during boot.
             // Probably not needed after template switch priority was lowered, but keeping the check
             // in case they do the same for template selects later.
-            if ( id(select_relay).has_state() && ( id(select_relay).state != "Always On" ) ) {
+            if ( id(select_relay).has_state() && ( strcmp(id(select_relay).current_option(), "Always On" ) != 0) ) {
               id(relay).turn_off(); }
         - script.execute: copy_vals
         - script.execute: script_save_changes
