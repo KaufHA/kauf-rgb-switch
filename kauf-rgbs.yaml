@@ -15,7 +15,7 @@ substitutions:
 
   # https://esphome.io/components/esphome.html#esphome-creators-project
   project_name: Kauf.RGBSw
-  project_ver_num: "1.383"
+  project_ver_num: "1.384"
   project_ver_let: y
 
   sub_4m: "false"
@@ -339,7 +339,7 @@ switch:
 
     # https://esphome.io/components/switch/template.html
   - platform: template
-    name: $friendly_name
+    name: ""
     id: ui_switch
     optimistic: true
     forced_hash: 4098969537
