@@ -15,7 +15,7 @@ substitutions:
 
   # https://esphome.io/components/esphome.html#esphome-creators-project
   project_name: Kauf.RGBSw
-  project_ver_num: "1.384"
+  project_ver_num: "1.385"
   project_ver_let: y
 
   sub_4m: "false"
@@ -81,15 +81,10 @@ esp8266:
   restore_from_flash: true
   early_pin_init: false
   start_free: 108
-  global_addr: global_forced_addr
 
 
 # https://esphome.io/guides/automations.html#global-variables
 globals:
-  - id: global_forced_addr
-    type: int
-    restore_value: no
-    initial_value: '12345'
   - id: global_press_time
     type: int
     restore_value: no
@@ -122,7 +117,7 @@ esphome:
           id: sensor_4m
           state: $sub_4m
 
-  min_version: 2025.12.0
+  min_version: 2026.1.0
 
 
 # https://esphome.io/components/external_components.html
@@ -130,7 +125,7 @@ external_components:
   - source:
       type: git
       url: https://github.com/KaufHA/common
-      ref: v2025.12.16
+      ref: v2026.01.16
     refresh: never
 
 
@@ -145,7 +140,6 @@ wifi:
   output_power: 17
 
   forced_addr: 82
-  global_addr: global_forced_addr
 
   ap:
     ap_timeout: $wifi_ap_timeout
@@ -208,7 +202,7 @@ binary_sensor:
               id(sensor_press_duration).publish_state(0);
 
               // toggle if button is configured to toggle on press
-              if (strcmp(id(select_button).current_option(), "Toggle on Press") == 0) {
+              if (id(select_button).current_option() == "Toggle on Press") {
                 id(ui_switch).toggle(); }
           - script.execute: $sub_on_press
 
@@ -219,7 +213,7 @@ binary_sensor:
               id(sensor_press_duration).publish_state(millis() - id(global_press_time));
 
               // toggle if configured to toggle on release and toggle check script is no longer running
-              if ( (strcmp(id(select_button).current_option(), "Toggle on Release") == 0) && !id($sub_toggle_check).is_running() ) {
+              if ( (id(select_button).current_option() == "Toggle on Release") && !id($sub_toggle_check).is_running() ) {
                 id(ui_switch).toggle(); }
 
           - script.execute: $sub_on_release
@@ -235,7 +229,7 @@ binary_sensor:
         - lambda: |-
             id(button_single_press).publish_state(true);
             // toggle if button is configured to toggle on single press
-            if (strcmp(id(select_button).current_option(), "Toggle on Single Press") == 0) {
+            if (id(select_button).current_option() == "Toggle on Single Press") {
               id(ui_switch).toggle(); }
             id(script_hass_toggle_single_press).execute();
             id($sub_on_single_press).execute();
@@ -249,7 +243,7 @@ binary_sensor:
         - lambda: |-
             id(button_double_press).publish_state(true);
             // toggle if button is configured to toggle on double press
-            if (strcmp(id(select_button).current_option(), "Toggle on Double Press") == 0) {
+            if (id(select_button).current_option() == "Toggle on Double Press") {
               id(ui_switch).toggle(); }
             id(script_hass_toggle_double_press).execute();
             id($sub_on_double_press).execute();
@@ -261,7 +255,7 @@ binary_sensor:
         - lambda: |-
             id(button_hold).publish_state(true);
             // toggle if button is configured to toggle on hold
-            if (strcmp(id(select_button).current_option(), "Toggle on Hold") == 0) {
+            if (id(select_button).current_option() == "Toggle on Hold") {
               id(ui_switch).toggle(); }
             id(script_hass_toggle_hold).execute();
             id($sub_on_hold).execute();
@@ -273,7 +267,7 @@ binary_sensor:
         - lambda: |-
             id(button_release_without_hold).publish_state(true);
             // toggle if button is configured to toggle on release without hold
-            if (strcmp(id(select_button).current_option(), "Toggle on Release Without Hold") == 0) {
+            if (id(select_button).current_option() == "Toggle on Release Without Hold") {
               id(ui_switch).toggle(); }
             id(script_hass_toggle_release_without_hold).execute();
             id($sub_on_release_without_hold).execute();
@@ -334,7 +328,6 @@ switch:
     pin: GPIO15
     forced_hash: 3551080420
     forced_addr: 0
-    global_addr: global_forced_addr
     restore_mode: RESTORE_DEFAULT_OFF
 
     # https://esphome.io/components/switch/template.html
@@ -344,7 +337,6 @@ switch:
     optimistic: true
     forced_hash: 4098969537
     forced_addr: 2
-    global_addr: global_forced_addr
     restore_mode: RESTORE_DEFAULT_OFF
 
     on_turn_on:
@@ -353,7 +345,7 @@ switch:
             // Waiting for select entity to have a state keeps the relay from toggling during boot.
             // Probably not needed after template switch priority was lowered, but keeping the check
             // in case they do the same for template selects later.
-            if ( id(select_relay).has_state() && ( strcmp(id(select_relay).current_option(), "Always Off" ) != 0) ) {
+            if ( id(select_relay).has_state() && ( id(select_relay).current_option() != "Always Off" ) ) {
               id(relay).turn_on(); }
         - script.execute: copy_vals
         - script.execute: script_save_changes
@@ -365,7 +357,7 @@ switch:
             // Waiting for select entity to have a state keeps the relay from toggling during boot.
             // Probably not needed after template switch priority was lowered, but keeping the check
             // in case they do the same for template selects later.
-            if ( id(select_relay).has_state() && ( strcmp(id(select_relay).current_option(), "Always On" ) != 0) ) {
+            if ( id(select_relay).has_state() && ( id(select_relay).current_option() != "Always On" ) ) {
               id(relay).turn_off(); }
         - script.execute: copy_vals
         - script.execute: script_save_changes
@@ -380,7 +372,6 @@ switch:
     icon: mdi:toggle-switch-off-outline
     forced_hash: 1672474889
     forced_addr: 4
-    global_addr: global_forced_addr
     restore_mode: RESTORE_DEFAULT_ON
 
     on_turn_on:
@@ -453,7 +444,6 @@ light:
     default_transition_length: $sub_transition_length
     forced_hash: 3940173824
     forced_addr: 10
-    global_addr: global_forced_addr
     restore_mode: RESTORE_DEFAULT_ON
 
   - platform: rgb
@@ -466,7 +456,6 @@ light:
     default_transition_length: 0s
     forced_hash: 1452166609
     forced_addr: 22
-    global_addr: global_forced_addr
     restore_mode: RESTORE_DEFAULT_ON
     effects:
       - lambda:
@@ -494,7 +483,6 @@ light:
     default_transition_length: 0s
     forced_hash: 1530533365
     forced_addr: 34
-    global_addr: global_forced_addr
     restore_mode: RESTORE_DEFAULT_ON
     effects:
       - lambda:
@@ -521,7 +509,6 @@ light:
     default_transition_length: $sub_transition_length
     forced_hash: 3403140939
     forced_addr: 46
-    global_addr: global_forced_addr
     restore_mode: RESTORE_DEFAULT_ON
 
   - platform: rgb
@@ -534,7 +521,6 @@ light:
     default_transition_length: 0s
     forced_hash: 730390778
     forced_addr: 58
-    global_addr: global_forced_addr
     restore_mode: RESTORE_DEFAULT_ON
     effects:
       - lambda:
@@ -562,7 +548,6 @@ light:
     default_transition_length: 0s
     forced_hash: 1638474020
     forced_addr: 70
-    global_addr: global_forced_addr
     restore_mode: RESTORE_DEFAULT_ON
     effects:
       - lambda:
@@ -598,7 +583,6 @@ select:
     icon: mdi:progress-question
     forced_hash: 3803457832
     forced_addr: 8
-    global_addr: global_forced_addr
 
     on_value:
       then:
@@ -627,7 +611,6 @@ select:
     icon: mdi:toggle-switch-off-outline
     forced_hash: 1841528035
     forced_addr: 6
-    global_addr: global_forced_addr
     on_value:
       - script.execute: script_save_changes
 

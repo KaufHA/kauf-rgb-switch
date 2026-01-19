@@ -7,7 +7,7 @@ substitutions:
 
   # https://esphome.io/components/esphome.html#esphome-creators-project
   project_name: Kauf.RGBSw
-  project_ver_num: "1.357"
+  project_ver_num: "1.385"
   project_ver_let: m
 
 
@@ -25,7 +25,7 @@ esphome:
     name: $project_name
     version: $project_ver_num($project_ver_let)
 
-  min_version: 2024.6.0
+  min_version: 2026.1.0
 
 
 # https://esphome.io/components/wifi.html
@@ -40,11 +40,15 @@ wifi:
 
   ap:
 
+  min_auth_mode: WPA2
+
+
 captive_portal:  # https://esphome.io/components/captive_portal.html
 logger:          # https://esphome.io/components/logger.html
 api:             # https://esphome.io/components/api.html
 ota:             # https://esphome.io/components/ota.html
-  platform: esphome
+  - platform: esphome
+  - platform: web_server
 safe_mode:
 web_server:      # https://esphome.io/components/web_server.html
 

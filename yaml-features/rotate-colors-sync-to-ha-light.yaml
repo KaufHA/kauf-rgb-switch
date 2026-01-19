@@ -96,7 +96,7 @@ esphome:
           option: "Toggle on Release"
       - if:
           condition:
-            lambda: return (!$stay_switched && (strcmp(id(select_relay).current_option(), "Switched") == 0) );
+            lambda: return (!$stay_switched && (id(select_relay).current_option() == "Switched") );
           then:
             - select.set:
                 id: select_relay
