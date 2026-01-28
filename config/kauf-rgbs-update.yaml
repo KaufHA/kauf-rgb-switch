@@ -23,3 +23,25 @@ wifi:
 # embed the web server's js file for binary update files
 web_server:
   local: true
+
+
+# KAUF: Light preference format migration for binary update files
+# migrate_from_old_hash enables conversion from pre-2025.7.0 struct layout
+light:
+  - id: !extend small_light
+    migrate_from_old_hash: true
+
+  - id: !extend small_light_off
+    migrate_from_old_hash: true
+
+  - id: !extend small_light_on
+    migrate_from_old_hash: true
+
+  - id: !extend big_light
+    migrate_from_old_hash: true
+
+  - id: !extend big_light_off
+    migrate_from_old_hash: true
+
+  - id: !extend big_light_on
+    migrate_from_old_hash: true

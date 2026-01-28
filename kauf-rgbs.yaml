@@ -15,7 +15,7 @@ substitutions:
 
   # https://esphome.io/components/esphome.html#esphome-creators-project
   project_name: Kauf.RGBSw
-  project_ver_num: "1.387"
+  project_ver_num: "1.39"
   project_ver_let: y
 
   sub_4m: "false"
@@ -89,6 +89,10 @@ globals:
     type: int
     restore_value: no
     initial_value: '0'
+  - id: blink_first_run
+    type: bool
+    restore_value: no
+    initial_value: 'true'
 
 
 # https://esphome.io/components/esphome.html
@@ -117,7 +121,7 @@ esphome:
           id: sensor_4m
           state: $sub_4m
 
-  min_version: 2026.1.1
+  min_version: 2026.1.2
 
 
 # https://esphome.io/components/external_components.html
@@ -125,7 +129,7 @@ external_components:
   - source:
       type: git
       url: https://github.com/KaufHA/common
-      ref: v2026.01.22
+      ref: v2026.01.27.1
     refresh: never
 
 
@@ -442,9 +446,10 @@ light:
     green: pwm1_green
     blue: pwm1_blue
     default_transition_length: $sub_transition_length
-    forced_hash: 3940173824
+    forced_hash: 3940173825
     forced_addr: 10
     restore_mode: RESTORE_DEFAULT_ON
+    migrate_from_old_hash: false # added 2026-01-27, v1.39
 
   - platform: rgb
     name: Small Off Value
@@ -454,9 +459,10 @@ light:
     blue: bit_bucket
     entity_category: config
     default_transition_length: 0s
-    forced_hash: 1452166609
+    forced_hash: 1452166610
     forced_addr: 22
     restore_mode: RESTORE_DEFAULT_ON
+    migrate_from_old_hash: false
     effects:
       - lambda:
           name: Disabled
@@ -481,9 +487,10 @@ light:
     blue: bit_bucket
     entity_category: config
     default_transition_length: 0s
-    forced_hash: 1530533365
+    forced_hash: 1530533366
     forced_addr: 34
     restore_mode: RESTORE_DEFAULT_ON
+    migrate_from_old_hash: false
     effects:
       - lambda:
           name: Disabled
@@ -507,9 +514,10 @@ light:
     green: pwm2_green
     blue: pwm2_blue
     default_transition_length: $sub_transition_length
-    forced_hash: 3403140939
+    forced_hash: 3403140940
     forced_addr: 46
     restore_mode: RESTORE_DEFAULT_ON
+    migrate_from_old_hash: false
 
   - platform: rgb
     name: Big Off Value
@@ -519,9 +527,10 @@ light:
     blue: bit_bucket
     entity_category: config
     default_transition_length: 0s
-    forced_hash: 730390778
+    forced_hash: 730390779
     forced_addr: 58
     restore_mode: RESTORE_DEFAULT_ON
+    migrate_from_old_hash: false
     effects:
       - lambda:
           name: Disabled
@@ -546,9 +555,10 @@ light:
     blue: bit_bucket
     entity_category: config
     default_transition_length: 0s
-    forced_hash: 1638474020
+    forced_hash: 1638474021
     forced_addr: 70
     restore_mode: RESTORE_DEFAULT_ON
+    migrate_from_old_hash: false
     effects:
       - lambda:
           name: Disabled
@@ -627,15 +637,21 @@ script:
 
       # set LED red for ? ms then off for ? ms, then repeat
       - lambda: |-
+          if (id(blink_first_run)) {
+            global_preferences->sync();
+            id(blink_first_run) = false;
+          }
           auto call = id(small_light).turn_on();
           call.set_brightness(1.0f);
           call.set_transition_length(0);
           call.set_rgb(1.0f, 0.0f, 0.0f);
+          call.set_save(false);
           call.perform();
       - delay: 350ms
       - lambda: |-
           auto call = id(small_light).turn_off();
           call.set_transition_length(0);
+          call.set_save(false);
           call.perform();
       - delay: 1150ms
       - if:
@@ -644,7 +660,9 @@ script:
           then:
             - script.execute: blink_status_led # repeat as long as api not connected
           else:
-            - script.execute: copy_vals        # restore set colors if api is connected
+            - lambda: |-
+                id(blink_first_run) = true;
+                id(small_light).restore_from_preferences();  // restore saved colors if api is connected
 
     # blink LED forever.  Used when button is held to re-enable AP.  Stops blinking because plug restarts.
   - id: blink_led
@@ -695,8 +713,8 @@ script:
           }
 
           // (small) switch is off, copy off values
-          else if ( (!id(ui_switch).state                                                               && (strcmp("$hass_entity_control_small_light","no.ne") == 0 ) && (small_light_on->get_effect_name() != "Disabled")) ||
-                    ((id(hass_small_light_state).state == "$hass_entity_control_small_light_off_state") && (strcmp("$hass_entity_control_small_light","no.ne") != 0 ) && (small_light_on->get_effect_name() != "Disabled"))  ) {
+          else if ( (!id(ui_switch).state                                                               && (strcmp("$hass_entity_control_small_light","no.ne") == 0 ) && (small_light_off->get_effect_name() != "Disabled")) ||
+                    ((id(hass_small_light_state).state == "$hass_entity_control_small_light_off_state") && (strcmp("$hass_entity_control_small_light","no.ne") != 0 ) && (small_light_off->get_effect_name() != "Disabled"))  ) {
             auto call = id(small_light).make_call();
             call.set_state(small_light_off->current_values.is_on());
             call.set_brightness(small_light_off->current_values.get_brightness());
@@ -718,8 +736,8 @@ script:
             call.perform();
           }
 
-          else if ( (!id(ui_switch).state                                                          && (strcmp("$hass_entity_control_big_light","no.ne") == 0 ) && (big_light_on->get_effect_name() != "Disabled")) ||
-                    ((id(hass_big_light_state).state == "$hass_entity_control_big_light_on_state") && (strcmp("$hass_entity_control_big_light","no.ne") != 0 ) && (big_light_on->get_effect_name() != "Disabled"))  ) {
+          else if ( (!id(ui_switch).state                                                          && (strcmp("$hass_entity_control_big_light","no.ne") == 0 ) && (big_light_off->get_effect_name() != "Disabled")) ||
+                    ((id(hass_big_light_state).state == "$hass_entity_control_big_light_off_state") && (strcmp("$hass_entity_control_big_light","no.ne") != 0 ) && (big_light_off->get_effect_name() != "Disabled"))  ) {
             auto call = id(big_light).make_call();
             call.set_state(big_light_off->current_values.is_on());
             call.set_brightness(big_light_off->current_values.get_brightness());

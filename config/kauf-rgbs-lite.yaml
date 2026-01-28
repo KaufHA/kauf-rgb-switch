@@ -15,7 +15,7 @@ substitutions:
 
   # https://esphome.io/components/esphome.html#esphome-creators-project
   project_name: Kauf.RGBSw
-  project_ver_num: "1.385"
+  project_ver_num: "1.39"
   project_ver_let: l
 
   sub_4m: "false"
@@ -114,7 +114,7 @@ esphome:
           id: sensor_4m
           state: $sub_4m
 
-  min_version: 2026.1.0
+  min_version: 2026.1.2
 
 
 # https://esphome.io/components/wifi.html
@@ -592,11 +592,13 @@ script:
           call.set_brightness(1.0f);
           call.set_transition_length(0);
           call.set_rgb(1.0f, 0.0f, 0.0f);
+          call.set_save(false);
           call.perform();
       - delay: 350ms
       - lambda: |-
           auto call = id(small_light).turn_off();
           call.set_transition_length(0);
+          call.set_save(false);
           call.perform();
       - delay: 1150ms
       - if:
@@ -656,8 +658,8 @@ script:
           }
 
           // (small) switch is off, copy off values
-          else if ( (!id(ui_switch).state                                                               && (strcmp("$hass_entity_control_small_light","no.ne") == 0 ) && (small_light_on->get_effect_name() != "Disabled")) ||
-                    ((id(hass_small_light_state).state == "$hass_entity_control_small_light_off_state") && (strcmp("$hass_entity_control_small_light","no.ne") != 0 ) && (small_light_on->get_effect_name() != "Disabled"))  ) {
+          else if ( (!id(ui_switch).state                                                               && (strcmp("$hass_entity_control_small_light","no.ne") == 0 ) && (small_light_off->get_effect_name() != "Disabled")) ||
+                    ((id(hass_small_light_state).state == "$hass_entity_control_small_light_off_state") && (strcmp("$hass_entity_control_small_light","no.ne") != 0 ) && (small_light_off->get_effect_name() != "Disabled"))  ) {
             auto call = id(small_light).make_call();
             call.set_state(small_light_off->current_values.is_on());
             call.set_brightness(small_light_off->current_values.get_brightness());
@@ -679,8 +681,8 @@ script:
             call.perform();
           }
 
-          else if ( (!id(ui_switch).state                                                          && (strcmp("$hass_entity_control_big_light","no.ne") == 0 ) && (big_light_on->get_effect_name() != "Disabled")) ||
-                    ((id(hass_big_light_state).state == "$hass_entity_control_big_light_on_state") && (strcmp("$hass_entity_control_big_light","no.ne") != 0 ) && (big_light_on->get_effect_name() != "Disabled"))  ) {
+          else if ( (!id(ui_switch).state                                                          && (strcmp("$hass_entity_control_big_light","no.ne") == 0 ) && (big_light_off->get_effect_name() != "Disabled")) ||
+                    ((id(hass_big_light_state).state == "$hass_entity_control_big_light_off_state") && (strcmp("$hass_entity_control_big_light","no.ne") != 0 ) && (big_light_off->get_effect_name() != "Disabled"))  ) {
             auto call = id(big_light).make_call();
             call.set_state(big_light_off->current_values.is_on());
             call.set_brightness(big_light_off->current_values.get_brightness());
