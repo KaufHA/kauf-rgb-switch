@@ -155,3 +155,7 @@ script:
             - lambda: return (id(switch_no_hass).state);
           then:
             - script.stop: blink_status_led
+
+
+web_server:
+  factory: true
