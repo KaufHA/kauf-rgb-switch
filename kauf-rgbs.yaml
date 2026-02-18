@@ -15,14 +15,14 @@ substitutions:
 
   # https://esphome.io/components/esphome.html#esphome-creators-project
   project_name: Kauf.RGBSw
-  project_ver_num: "1.392"
+  project_ver_num: "1.393"
   project_ver_let: y
 
   sub_4m: "false"
   sub_import_url: github://KaufHA/kauf-rgb-switch/kauf-rgbs.yaml
 
   disable_entities: "true"     # set to "false" to have all entities show up in Home Assistant automatically
-  disable_webserver: "false"   # set to "true" to disable webserver listening on port 80.
+  disable_webserver: "__KAUF_DEPRECATED_SENTINEL__"  # deprecated; see https://github.com/KaufHA/common/DEPRECATED_SUBSTITUTIONS.md#disable_webserver
 
   wifi_ap_timeout: 2min        # default to 2 minute timeout for yaml file as package.
 
@@ -121,7 +121,7 @@ esphome:
           id: sensor_4m
           state: $sub_4m
 
-  min_version: 2026.1.4
+  min_version: 2026.2.0
 
 
 # https://esphome.io/components/external_components.html
@@ -129,8 +129,11 @@ external_components:
   - source:
       type: git
       url: https://github.com/KaufHA/common
-      ref: v2026.02.07.1
+      ref: v2026.2.3
     refresh: never
+
+kauf_deprecations:
+  disable_webserver: $disable_webserver
 
 
 # https://esphome.io/components/wifi.html
@@ -178,7 +181,6 @@ safe_mode:
 
 # https://esphome.io/components/web_server.html
 web_server:
-  disable: $disable_webserver
   sensor_4m: $sub_4m
   js_url: https://kaufha.com/v2/www.js
   product: rgbsw
