@@ -15,14 +15,14 @@ substitutions:
 
   # https://esphome.io/components/esphome.html#esphome-creators-project
   project_name: Kauf.RGBSw
-  project_ver_num: "1.393"
+  project_ver_num: "1.394"
   project_ver_let: y
 
   sub_4m: "false"
   sub_import_url: github://KaufHA/kauf-rgb-switch/kauf-rgbs.yaml
 
   disable_entities: "true"     # set to "false" to have all entities show up in Home Assistant automatically
-  disable_webserver: "__KAUF_DEPRECATED_SENTINEL__"  # deprecated; see https://github.com/KaufHA/common/DEPRECATED_SUBSTITUTIONS.md#disable_webserver
+  disable_webserver: "__KAUF_DEPRECATED_SENTINEL__"  # deprecated; see https://github.com/KaufHA/common/blob/main/DEPRECATED_SUBSTITUTIONS.md#disable_webserver
 
   wifi_ap_timeout: 2min        # default to 2 minute timeout for yaml file as package.
 
@@ -129,7 +129,7 @@ external_components:
   - source:
       type: git
       url: https://github.com/KaufHA/common
-      ref: v2026.2.3
+      ref: v2026.2.5
     refresh: never
 
 kauf_deprecations:
