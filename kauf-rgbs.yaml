@@ -23,6 +23,9 @@ substitutions:
 
   disable_entities: "true"     # set to "false" to have all entities show up in Home Assistant automatically
   disable_webserver: "__KAUF_DEPRECATED_SENTINEL__"  # deprecated; see https://github.com/KaufHA/common/blob/main/DEPRECATED_SUBSTITUTIONS.md#disable_webserver
+  hass_ct_mireds_entity: "__KAUF_DEPRECATED_SENTINEL__"     # deprecated; home assistant no longer supports mired.
+  hass_ct_mireds_attribute: "__KAUF_DEPRECATED_SENTINEL__"  # deprecated; home assistant no longer supports mired.
+  hass_ct_mireds_fixed: "__KAUF_DEPRECATED_SENTINEL__"      # deprecated; home assistant no longer supports mired.
 
   wifi_ap_timeout: 2min        # default to 2 minute timeout for yaml file as package.
 
@@ -129,11 +132,14 @@ external_components:
   - source:
       type: git
       url: https://github.com/KaufHA/common
-      ref: v2026.2.6
+      ref: v2026.2.11
     refresh: never
 
 kauf_deprecations:
   disable_webserver: $disable_webserver
+  hass_ct_mireds_entity: $hass_ct_mireds_entity
+  hass_ct_mireds_attribute: $hass_ct_mireds_attribute
+  hass_ct_mireds_fixed: $hass_ct_mireds_fixed
 
 
 # https://esphome.io/components/wifi.html

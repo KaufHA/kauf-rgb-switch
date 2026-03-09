@@ -67,9 +67,6 @@ substitutions:
   hass_ct_kelvin_entity:         none
   hass_ct_kelvin_attribute:      none
   hass_ct_kelvin_fixed:          none
-  hass_ct_mireds_entity:         none
-  hass_ct_mireds_attribute:      none
-  hass_ct_mireds_fixed:          none
 
   ############################################################################
   # substitutions to implement functionality, do not change these
@@ -376,17 +373,17 @@ script:
 
               // fixed kelvin set
               if ( strcmp("$hass_ct_kelvin_fixed","none") != 0 ) {
-                call->add_data("kelvin", "$hass_ct_kelvin_fixed");
+                call->add_data("color_temp_kelvin", "$hass_ct_kelvin_fixed");
               }
 
               // kelvin entity set, attribute not set
               else if ( (strcmp("$hass_ct_kelvin_entity","none")!=0) && (strcmp("$hass_ct_kelvin_attribute","none")==0) ) {
-                call->add_data_template("kelvin", "{{ states(\"$hass_ct_kelvin_entity\") }}");
+                call->add_data_template("color_temp_kelvin", "{{ states(\"$hass_ct_kelvin_entity\") }}");
               }
 
               // kelvin entity and attribute both set
               else if ( (strcmp("$hass_ct_kelvin_entity","none")!=0) && (strcmp("$hass_ct_kelvin_attribute","none")!=0) ) {
-                call->add_data_template("kelvin", "{{ state_attr(\"$hass_ct_kelvin_entity\",\"$hass_ct_kelvin_attribute\") }}");
+                call->add_data_template("color_temp_kelvin", "{{ state_attr(\"$hass_ct_kelvin_entity\",\"$hass_ct_kelvin_attribute\") }}");
               }
 
               // fixed rgb set
@@ -402,21 +399,6 @@ script:
               // rgb entity and attribute both set
               else if ( (strcmp("$hass_rgb_entity","none")!=0) && (strcmp("$hass_rgb_attribute","none")!=0) ) {
                 call->add_data_template("rgb_color", "{{ state_attr(\"$hass_rgb_entity\",\"$hass_rgb_attribute\") }}");
-              }
-
-              // mireds entity set, attribute not set
-              else if ( (strcmp("$hass_ct_mireds_entity","none")!=0) && (strcmp("$hass_ct_mireds_attribute","none")==0) ) {
-                call->add_data_template("color_temp", "{{ states(\"$hass_ct_mireds_entity\") }}");
-              }
-
-              // mireds entity and attribute both set
-              else if ( (strcmp("$hass_ct_mireds_entity","none")!=0) && (strcmp("$hass_ct_mireds_attribute","none")!=0) ) {
-                call->add_data_template("color_temp", "{{ state_attr(\"$hass_ct_mireds_entity\",\"$hass_ct_mireds_attribute\") }}");
-              }
-
-              // fixed mireds set (last since set by default, that way any other option set will override)
-              else if ( strcmp("$hass_ct_mireds_fixed","none")!=0 ) {
-                call->add_data("color_temp", "$hass_ct_mireds_fixed");
               }
 
               call->play();
