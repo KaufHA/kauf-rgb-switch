@@ -1,3 +1,5 @@
 packages:
-  Kauf.RGBSw: github://KaufHA/kauf-rgb-switch/kauf-rgbs.yaml
-  Kauf.4m:    github://KaufHA/kauf-rgb-switch/config/kauf-rgbs-4m-base.yaml
+  rgbs.new4m: !include packages/kauf-srf10-4m.yaml
+
+kauf_deprecations:
+  yaml_file: "__KAUF_RGBS_LEGACY_YAML_4M__"

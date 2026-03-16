@@ -1,8 +1,8 @@
 Newer models of the RGB Switch now come with 4 MB of memory instead of 1MB.  The two different models require different update files if manually updating or different yaml packages in the ESPHome dashboard.
 
-If you have a ***1MB*** model, ensure you only flash our update files with `-1m` in the filename.  In the ESPHome dashboard, you should only use `kauf-rgbs.yaml`.
+If you have a ***1MB*** model, ensure you only flash our update files with `-1m` in the filename.  In the ESPHome dashboard, you should only use `packages/kauf-srf10-1m.yaml`.
 
-If you have a ***4MB*** model, ensure you only flash our update files with `-4m` in the filename.  In the ESPHome dashboard, you should only use `kauf-rgbs-4m.yaml`.
+If you have a ***4MB*** model, ensure you only flash our update files with `-4m` in the filename.  In the ESPHome dashboard, you should only use `packages/kauf-srf10-4m.yaml`.
 
 In general, you should not have to worry much about which version of a switch you have.  The proper yaml file will be included by default when adopting a switch in the ESPHome dashboard.  The manual update files will refuse to cross-update between the 1m and 4m versions once you are updated to a version that supports both 1m and 4m.
 

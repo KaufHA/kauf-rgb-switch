@@ -1,0 +1,147 @@
+# Kauf profile — extends stock-default with kauf-specific additions:
+#   forced_hash / forced_addr on all persistent entities (stable flash layout)
+#   migrate_from_old_hash: false on all lights
+#   external_components (KaufHA/common) and kauf_deprecations
+#   wifi forced_addr
+#   web_server product/js_url
+#   blink_first_run logic and restore_from_preferences via sub_blink_pre/post hooks
+
+substitutions:
+
+  project_ver_let: y
+
+  sub_import_url: github://KaufHA/kauf-rgb-switch/packages/kauf-srf10-1m.yaml
+
+  # override blink hooks with kauf-specific scripts
+  sub_blink_pre:  script_blink_pre
+  sub_blink_post: script_blink_post
+
+  disable_webserver: "__KAUF_DEPRECATED_SENTINEL__"  # deprecated; see https://github.com/KaufHA/common/blob/main/DEPRECATED_SUBSTITUTIONS.md#disable_webserver
+  hass_ct_mireds_entity: "__KAUF_DEPRECATED_SENTINEL__"     # deprecated; home assistant no longer supports mired.
+  hass_ct_mireds_attribute: "__KAUF_DEPRECATED_SENTINEL__"  # deprecated; home assistant no longer supports mired.
+  hass_ct_mireds_fixed: "__KAUF_DEPRECATED_SENTINEL__"      # deprecated; home assistant no longer supports mired.
+
+
+packages:
+  stock: !include stock-default.yaml
+
+
+globals:
+  - id: blink_first_run
+    type: bool
+    restore_value: no
+    initial_value: 'true'
+
+
+# https://esphome.io/components/external_components.html
+external_components:
+  - source:
+      type: git
+      url: https://github.com/KaufHA/common
+      ref: $sub_common_ref
+    refresh: never
+
+kauf_deprecations:
+  disable_webserver: $disable_webserver
+  hass_ct_mireds_entity: $hass_ct_mireds_entity
+  hass_ct_mireds_attribute: $hass_ct_mireds_attribute
+  hass_ct_mireds_fixed: $hass_ct_mireds_fixed
+
+
+wifi:
+  forced_addr: 82
+
+
+web_server:
+  js_url: https://kaufha.com/v2/www.js
+  product: rgbsw
+
+
+switch:
+  - id: !extend relay
+    forced_hash: 3551080420
+    forced_addr: 0
+
+  - id: !extend ui_switch
+    forced_hash: 4098969537
+    forced_addr: 2
+
+  - id: !extend switch_no_hass
+    forced_hash: 1672474889
+    forced_addr: 4
+
+
+light:
+  - id: !extend small_light
+    forced_hash: 3940173825
+    forced_addr: 10
+    migrate_from_old_hash: false # added 2026-01-27, v1.39
+
+  - id: !extend small_light_off
+    forced_hash: 1452166610
+    forced_addr: 22
+    migrate_from_old_hash: false
+
+  - id: !extend small_light_on
+    forced_hash: 1530533366
+    forced_addr: 34
+    migrate_from_old_hash: false
+
+  - id: !extend big_light
+    forced_hash: 3403140940
+    forced_addr: 46
+    migrate_from_old_hash: false
+
+  - id: !extend big_light_off
+    forced_hash: 730390779
+    forced_addr: 58
+    migrate_from_old_hash: false
+
+  - id: !extend big_light_on
+    forced_hash: 1638474021
+    forced_addr: 70
+    migrate_from_old_hash: false
+
+
+select:
+  - id: !extend select_relay
+    forced_hash: 3803457832
+    forced_addr: 8
+
+  - id: !extend select_button
+    forced_hash: 1841528035
+    forced_addr: 6
+
+
+script:
+
+  # executes at the start of each blink cycle: syncs prefs on first blink and clears the flag
+  - id: script_blink_pre
+    then:
+      - lambda: |-
+          if (id(blink_first_run)) {
+            global_preferences->sync();
+            id(blink_first_run) = false;
+          }
+
+  # executes when blink ends (api connected): resets flag and restores saved light state from flash
+  - id: script_blink_post
+    then:
+      - lambda: |-
+          id(blink_first_run) = true;
+          id(small_light).restore_from_preferences();  // restore saved colors if api is connected
+
+
+# Current reserved flash memory:
+#  00- 01:   Relay Switch
+#  02- 03:   UI Switch
+#  04- 05:   No HASS Switch
+#  06- 07:   Button Config Select
+#  08- 09:   Relay Config Select
+#  10- 21:   Small Light
+#  22- 33:   Small Off Value Light
+#  34- 45:   Small On Value Light
+#  46- 57:   Big Light
+#  58- 69:   Big Off Value Light
+#  70- 81:   Big On Value Light
+#  82-107:   Wi-Fi Credentials

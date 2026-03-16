@@ -1,3 +1,12 @@
 packages:
-  Kauf.RGBSw-l: github://KaufHA/kauf-rgb-switch/kauf-rgbs-lite.yaml
-  Kauf.4m:      github://KaufHA/kauf-rgb-switch/kauf-rgbs-4m-base.yaml
+  profile: !include ../packages/profiles/stock-default.yaml
+  target:  !include ../packages/targets/stock-srf10-4m-target.yaml
+
+kauf_deprecations:
+  yaml_file: "__KAUF_RGBS_LEGACY_YAML_4M_LITE__"
+
+external_components:
+  - source:
+      type: git
+      url: https://github.com/KaufHA/common
+    components: [kauf_deprecations]

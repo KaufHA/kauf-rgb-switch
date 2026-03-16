@@ -1,0 +1,69 @@
+# Kauf minimal profile — extends stock-minimal with kauf-specific additions:
+#   forced_hash / forced_addr on relay and lights (stable flash layout)
+#   migrate_from_old_hash: false on lights
+#   external_components (KaufHA/common) and kauf_deprecations
+#   wifi forced_addr
+#   web_server product/js_url
+
+substitutions:
+
+  project_ver_let: m
+
+  disable_webserver: "__KAUF_DEPRECATED_SENTINEL__"  # deprecated; see https://github.com/KaufHA/common/blob/main/DEPRECATED_SUBSTITUTIONS.md#disable_webserver
+  hass_ct_mireds_entity: "__KAUF_DEPRECATED_SENTINEL__"     # deprecated; home assistant no longer supports mired.
+  hass_ct_mireds_attribute: "__KAUF_DEPRECATED_SENTINEL__"  # deprecated; home assistant no longer supports mired.
+  hass_ct_mireds_fixed: "__KAUF_DEPRECATED_SENTINEL__"      # deprecated; home assistant no longer supports mired.
+
+
+packages:
+  stock: !include stock-minimal.yaml
+
+
+# https://esphome.io/components/external_components.html
+external_components:
+  - source:
+      type: git
+      url: https://github.com/KaufHA/common
+      ref: $sub_common_ref
+    refresh: never
+
+kauf_deprecations:
+  disable_webserver: $disable_webserver
+  hass_ct_mireds_entity: $hass_ct_mireds_entity
+  hass_ct_mireds_attribute: $hass_ct_mireds_attribute
+  hass_ct_mireds_fixed: $hass_ct_mireds_fixed
+
+
+wifi:
+  forced_addr: 82
+
+
+web_server:
+  js_url: https://kaufha.com/v2/www.js
+  product: rgbsw
+
+
+switch:
+  - id: !extend relay
+    forced_hash: 3551080420
+    forced_addr: 0
+
+
+light:
+  - id: !extend small_light
+    forced_hash: 3940173825
+    forced_addr: 10
+    migrate_from_old_hash: false
+
+  - id: !extend big_light
+    forced_hash: 3403140940
+    forced_addr: 46
+    migrate_from_old_hash: false
+
+
+# Current reserved flash memory:
+#  00- 01:   Relay Switch
+#  10- 21:   Small Light
+#  46- 57:   Big Light
+#  82-107:   Wi-Fi Credentials
+#  (addresses 02-09, 22-45, 58-81 intentionally match kauf-default gaps for cross-flash compatibility)

@@ -1,0 +1,36 @@
+# PWM outputs for ESP8266 targets.
+# https://esphome.io/components/output/esp8266_pwm.html
+output:
+
+    # small light pwm
+  - platform: esp8266_pwm
+    pin: $sub_pwm1_red_pin
+    frequency: 250 Hz
+    id: pwm1_red
+    inverted: true
+  - platform: esp8266_pwm
+    pin: $sub_pwm1_green_pin
+    frequency: 250 Hz
+    id: pwm1_green
+    inverted: true
+  - platform: esp8266_pwm
+    pin: $sub_pwm1_blue_pin
+    frequency: 250 Hz
+    id: pwm1_blue
+    inverted: true
+
+    # big light pwm
+  - platform: esp8266_pwm
+    pin: $sub_pwm2_red_pin
+    frequency: 250 Hz
+    id: pwm2_red
+  - platform: esp8266_pwm
+    pin: $sub_pwm2_green_pin
+    frequency: 250 Hz
+    id: pwm2_green
+    max_power: $sub_pwm2_green_max_power
+  - platform: esp8266_pwm
+    pin: $sub_pwm2_blue_pin
+    frequency: 250 Hz
+    id: pwm2_blue
+    max_power: $sub_pwm2_blue_max_power

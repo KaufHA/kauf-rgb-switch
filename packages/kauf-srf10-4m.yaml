@@ -1,0 +1,4 @@
+# Default 4MiB ESP8266 entrypoint (kauf profile + 4m target).
+packages:
+  Kauf.Profile: !include profiles/kauf-default.yaml
+  Kauf.Target:  !include targets/kauf-srf10-4m-target.yaml

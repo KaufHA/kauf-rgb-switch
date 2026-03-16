@@ -1,7 +1,7 @@
 # KAUF RGB Wall Switch (SRF10)
 Files for the KAUF RGB Wall Switch
 
-The recommended way to import a wall switch into your ESPHome dashboard is through the dashboard import feature.  The following yaml is the minimum required to utilize the yaml file in this github repo as a package, as with the dashboard import feature.  The friendly_name substitution is recommended and will not be automatically created by the ESPHome dashboard import.
+The recommended way to import a wall switch into your ESPHome dashboard is through the dashboard import feature.  The following yaml is the minimum required to utilize the yaml files in this github repo as packages, as with the dashboard import feature.
 
 
 ```
@@ -10,7 +10,11 @@ substitutions:
   friendly_name: Bedroom Light
 
 packages:
-  Kauf.RGBSw: github://KaufHA/kauf-rgb-switch/kauf-rgbs.yaml
+  # Uncomment the line that matches your product variant (1MiB or 4MiB flash).
+  # The variant is printed on the label on the back of the switch.
+  # See kauf-rgbs-1m-4m-comparison.md for more ways to identify your variant.
+  Kauf.RGBSw: github://KaufHA/kauf-rgb-switch/packages/kauf-srf10-1m.yaml
+  # Kauf.RGBSw: github://KaufHA/kauf-rgb-switch/packages/kauf-srf10-4m.yaml
 
 wifi:
   ssid: !secret wifi_ssid
@@ -19,22 +23,22 @@ wifi:
 
 ## Repo Contents
 
-This repo contains files for the KAUF RGB Light Switch.
+***packages/kauf-srf10-1m.yaml*** - Recommended entrypoint for 1MiB flash switches.  Combines the kauf-default profile with the 1MiB target.
 
-***kauf-rgbs.yaml*** - The yaml file recommended to import a switch into your ESPHome dashboard and keep all custom Kauf functionality.  This is the yaml file incorporated automatically when the dashboard import feature is used.
+***packages/kauf-srf10-4m.yaml*** - Recommended entrypoint for 4MiB flash switches.  Combines the kauf-default profile with the 4MiB target.
 
-***kauf-rgbs-lite.yaml*** - A yaml file without any Kauf custom components but otherwise keeping as much functionality from kauf-rgbs.yaml as possible.
+***packages/profiles/*** - Profile yaml files defining device functionality.  See [Profile Options](#profile-options) for details.
 
-***kauf-rgbs-minimal.yaml*** - A yaml file to import a switch into your ESPHome dashboard with only basic functionality.  The RGB lights will exist as light entities but will not be automated in any way
+***packages/targets/*** - Target yaml files defining hardware configuration for each board variant.  See [Target Options](#target-options) for details.
 
-***kauf-rgbs-update.yaml*** - The yaml file to build the update bin file.  Generally not useful to end users.
+***packages/updates/*** - Yaml files used to build OTA update binaries.  Generally not useful to end users.
 
-***kauf-rgbs-factory.yaml*** - The yaml file to build the factory bin file.  Generally not useful to end users.
+***yaml-features/*** - Contains additional yaml files that can be compiled in to add features.  See readme file in that directory for more information.
 
-***yaml-features* directory** - Contains additional yaml files that can be compiled in to add features.  See readme file in that directory for more information.
+***[kauf-rgbs-1m-4m-comparison.md](kauf-rgbs-1m-4m-comparison.md)*** - Explains the differences between 1MiB and 4MiB switch variants and how to identify which variant you have.
 
 # Entities
-If using the precompiled binary or kauf-rgbs.yaml as a package in the ESPHome dashboard, the following configuration entities are automatically created.  Entities listed as disabled by default can be enabled in Home Assistant, or simply modified through the web interface by clicking "Visit Device" in Home Assistant or typing the switch's IP address into a web browser.
+If using the precompiled binary or the default packages in the ESPHome dashboard, the following configuration entities are automatically created.  Entities listed as disabled by default can be enabled in Home Assistant, or simply modified through the web interface by clicking "Visit Device" in Home Assistant or typing the switch's IP address into a web browser.
 
 
 ## Control Entities
@@ -95,11 +99,11 @@ If using the precompiled binary or kauf-rgbs.yaml as a package in the ESPHome da
 ***Uptime*** sensor entity - gives the switch's uptime in seconds.
 
 # Advanced Settings
-When using kauf-rgbs.yaml as a package in the ESPHome dashboard, you can configure the following aspects by adding substitutions.  The substitutions section of kauf-rgbs.yaml has comments with more explanation as well.
+When using the default yaml packages in the ESPHome dashboard, you can configure the following aspects by adding substitutions. 
 
 ***friendly_name*** - The friendly name will be used to name every entity in Home Assistant.  Add a substitution to change this to something descriptive for each device.
 
-***disable_entities*** - Adding a substitution to redefine this to "false" will result in all entities being automatically enabled in Home Assistant.
+***disable_entities*** - Adding a substitution to redefine this to "false" will result in all entities being automatically enabled in Home Assistant.  By default, this is true so that a lot of rarely-used entities are hidden in Home Assistant.
 
 ***sub_on_press*** - Defines a script to be executed when the switch's button is pressed.
 
@@ -119,11 +123,109 @@ When using kauf-rgbs.yaml as a package in the ESPHome dashboard, you can configu
 
 ***sub_transition_length*** - Change the default transition length for both lights.
 
+***wifi_ap_timeout*** - Change the timeout before the switch's Wi-Fi access point turns off when no client connects.  Defaults to 2 minutes.
+
 ***sub_double_press_max_gap*** - A length of time defining the maximum gap between two presses that will result in a double press.  This also defines the delay after a press when a single press will be recognized, due to having to wait this long to distinguish between a single and a double press.
 
 ***sub_hold_time*** - A length of time defining how long the button must be held to count as a hold.  This also defines the maximum amount of time for a single press and the maximum amount of time for the first press of a double press.
 
 ***sub_button_sensor_duration*** - A length of tiem defining how long the single press and double press binary sensors will be high for whenever triggered.
+
+# Package Structure
+
+The recommended yaml files are now organized as a profile combined with a target, located under the `packages/` directory.  For most users, the simplest approach is to use one of the pre-combined entrypoint files:
+
+```
+substitutions:
+  name: bedroom-light
+  friendly_name: Bedroom Light
+
+packages:
+  # Uncomment the line that matches your product variant (1MiB or 4MiB flash).
+  # The variant is printed on the label on the back of the switch.
+  # See kauf-rgbs-1m-4m-comparison.md for more ways to identify your variant.
+  Kauf.RGBSw: github://KaufHA/kauf-rgb-switch/packages/kauf-srf10-1m.yaml
+  # Kauf.RGBSw: github://KaufHA/kauf-rgb-switch/packages/kauf-srf10-4m.yaml
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+```
+
+To use a different profile, include a profile and target separately instead of a pre-combined entrypoint file:
+
+```
+substitutions:
+  name: bedroom-light
+  friendly_name: Bedroom Light
+
+packages:
+  profile: github://KaufHA/kauf-rgb-switch/packages/profiles/kauf-minimal.yaml
+  target:  github://KaufHA/kauf-rgb-switch/packages/targets/kauf-srf10-1m-target.yaml
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+```
+
+## Profile Options
+
+Profiles are located in `packages/profiles/`.  Kauf profiles include Kauf custom components and stable flash layout.  Stock profiles have no Kauf-specific components.
+
+***kauf-default*** - Full Kauf functionality including button automation, light automation, and all configuration entities.  Equivalent to the previous `kauf-rgbs.yaml`.  Use with a `kauf-` target.
+
+***kauf-minimal*** - Kauf components and stable flash layout, but only basic functionality: button toggles relay, no light automation, no configuration entities.  Use with a `kauf-` target.
+
+***stock-default*** - Full functionality without Kauf custom components.  Use with a `stock-` target.
+
+***stock-minimal*** - Basic functionality without Kauf custom components.  Use with a `stock-` target.
+
+## Target Options
+
+Targets are located in `packages/targets/`.  Kauf targets include stable flash address reservations for Kauf profiles.  Stock targets do not include these reservations.
+
+***kauf-srf10-1m-target*** - ESP8266 1MiB flash (esp01_1m board).  Use with a `kauf-` profile.
+
+***kauf-srf10-4m-target*** - ESP8266 4MiB flash (esp07s board).  Use with a `kauf-` profile.
+
+***stock-srf10-1m-target*** - ESP8266 1MiB flash (esp01_1m board).  Use with a `stock-` profile.
+
+***stock-srf10-4m-target*** - ESP8266 4MiB flash (esp07s board).  Use with a `stock-` profile.
+
+
+# yaml-migration
+
+The top-level `kauf-rgbs.yaml` and `kauf-rgbs-4m.yaml` files are deprecated in favor of the new package structure described above.
+
+**If you are currently using `kauf-rgbs.yaml`**, change the following line in your yaml file:
+
+```
+# change this:
+packages:
+  Kauf.RGBSw: github://KaufHA/kauf-rgb-switch/kauf-rgbs.yaml
+
+# to this:
+packages:
+  Kauf.RGBSw: github://KaufHA/kauf-rgb-switch/packages/kauf-srf10-1m.yaml
+```
+
+**If you are currently using `kauf-rgbs-4m.yaml`**, change the following line in your yaml file:
+
+
+Change this:
+```
+packages:
+  Kauf.RGBSw: github://KaufHA/kauf-rgb-switch/kauf-rgbs-4m.yaml
+```
+to this:
+
+```
+packages:
+  Kauf.RGBSw: github://KaufHA/kauf-rgb-switch/packages/kauf-srf10-4m.yaml
+```
+
+All substitutions and customizations from the old yaml files are compatible with the new files.
+
 
 # Troubleshooting
 

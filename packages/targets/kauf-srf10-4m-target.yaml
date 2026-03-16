@@ -1,0 +1,16 @@
+# Kauf-specific overrides for 4MiB ESP8266 target.
+
+packages:
+  stock_target: !include stock-srf10-4m-target.yaml
+
+
+substitutions:
+  sub_target_package: targets/kauf-srf10-4m-target.yaml
+
+
+esp8266:
+  start_free: 108
+
+
+web_server:
+  sensor_4m: $sub_4m
