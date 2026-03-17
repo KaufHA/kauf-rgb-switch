@@ -1,3 +1,0 @@
-packages:
-  Kauf.RGBSw-u: !include kauf-rgbs-update.yaml
-  Kauf.4m:      !include kauf-rgbs-4m-base.yaml

@@ -5,7 +5,6 @@ packages:
 
 substitutions:
   sub_4m: "false"
-  sub_import_url: github://KaufHA/kauf-rgb-switch/packages/kauf-srf10-1m.yaml
 
   # GPIO pin assignments
   sub_button_pin: GPIO13

@@ -2,14 +2,6 @@ substitutions:
   project_ver_let: u
 
 
-packages:
-  kauf_rgbsw_base: !include ../kauf-rgbs.yaml
-
-
-dashboard_import:
-  package_import_url: $sub_import_url
-
-
 esphome:
   name_add_mac_suffix: true
 

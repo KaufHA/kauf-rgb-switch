@@ -1,0 +1,6 @@
+packages:
+  kauf_rgbsw_base: !include ../kauf-srf10-1m.yaml
+  kauf_rgbsw_update: !include includes/kauf-rgbs-common-update.yaml
+
+dashboard_import:
+  package_import_url: github://KaufHA/kauf-rgb-switch/packages/kauf-srf10-1m.yaml

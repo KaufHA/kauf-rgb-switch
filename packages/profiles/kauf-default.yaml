@@ -10,8 +10,6 @@ substitutions:
 
   project_ver_let: y
 
-  sub_import_url: github://KaufHA/kauf-rgb-switch/packages/kauf-srf10-1m.yaml
-
   # override blink hooks with kauf-specific scripts
   sub_blink_pre:  script_blink_pre
   sub_blink_post: script_blink_post
