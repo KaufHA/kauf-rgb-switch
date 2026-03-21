@@ -2,6 +2,6 @@ substitutions:
   project_name: Kauf.RGBSw
 
   # Shared release/version knobs used across profiles and all platform targets.
-  project_ver_num: "1.396"
+  project_ver_num: "1.397"
   sub_min_version: 2026.3.0
   sub_common_ref: v2026.3.1

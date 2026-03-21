@@ -55,7 +55,9 @@ api:
 # https://esphome.io/components/ota.html
 ota:
   - platform: web_server
+    id: kauf_web_server_ota
   - platform: esphome
+    id: kauf_esphome_ota
 
 
 safe_mode:
