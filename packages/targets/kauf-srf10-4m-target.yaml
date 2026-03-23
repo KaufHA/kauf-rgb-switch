@@ -14,3 +14,4 @@ esp8266:
 
 web_server:
   sensor_4m: $sub_4m
+  product: srf10

@@ -40,7 +40,6 @@ wifi:
 
 web_server:
   js_url: https://kaufha.com/v2/www.js
-  product: rgbsw
 
 
 switch:
