@@ -1,0 +1,8 @@
+# Generic entrypoint — no defaults. Requires components, profile, and target substitutions.
+#   components: kauf | stock
+#   profile:    default | minimal
+#   target:     srf12 | srf10-1m | srf10-4m
+
+packages:
+  Kauf.Profile: !include profiles/${components}-${profile}.yaml
+  Kauf.Target:  !include targets/${components}-${target}-target.yaml

@@ -10,8 +10,8 @@ substitutions:
   friendly_name: Bedroom Light
 
 packages:
-  # Uncomment the line that matches your product variant (1MiB or 4MiB flash).
-  # The variant is printed on the label on the back of the switch.
+  # Use the entrypoint matching your hardware variant (1MiB or 4MiB flash).
+  # The flash size is printed on the label on the back of the switch.
   # See kauf-rgbs-1m-4m-comparison.md for more ways to identify your variant.
   Kauf.RGBSw: github://KaufHA/kauf-rgb-switch/packages/kauf-srf10-1m.yaml
   # Kauf.RGBSw: github://KaufHA/kauf-rgb-switch/packages/kauf-srf10-4m.yaml
@@ -23,9 +23,11 @@ wifi:
 
 ## Repo Contents
 
-***packages/kauf-srf10-1m.yaml*** - Recommended entrypoint for 1MiB flash switches.  Combines the kauf-default profile with the 1MiB target.
+***packages/kauf-srf10-1m.yaml*** - Entrypoint for 1MiB ESP8266 switches.  Defaults to kauf components and default profile.
 
-***packages/kauf-srf10-4m.yaml*** - Recommended entrypoint for 4MiB flash switches.  Combines the kauf-default profile with the 4MiB target.
+***packages/kauf-srf10-4m.yaml*** - Entrypoint for 4MiB ESP8266 switches.  Defaults to kauf components and default profile.
+
+***packages/kauf-rgbs.yaml*** - Generic entrypoint with no defaults.  Requires `components`, `profile`, and `target` substitutions to be defined.
 
 ***packages/profiles/*** - Profile yaml files defining device functionality.  See [Profile Options](#profile-options) for details.
 
@@ -99,7 +101,11 @@ If using the precompiled binary or the default packages in the ESPHome dashboard
 ***Uptime*** sensor entity - gives the switch's uptime in seconds.
 
 # Advanced Settings
-When using the default yaml packages in the ESPHome dashboard, you can configure the following aspects by adding substitutions. 
+When using the default yaml packages in the ESPHome dashboard, you can configure the following aspects by adding substitutions.
+
+***components*** - Selects which set of components to use.  Defaults to `kauf`.  Set to `stock` to use stock ESPHome components without any Kauf customizations.
+
+***profile*** - Selects which profile to use.  Defaults to `default`.  Set to `minimal` for basic functionality with no button automation, light automation, or configuration entities.
 
 ***friendly_name*** - The friendly name will be used to name every entity in Home Assistant.  Add a substitution to change this to something descriptive for each device.
 
@@ -133,35 +139,34 @@ When using the default yaml packages in the ESPHome dashboard, you can configure
 
 # Package Structure
 
-The recommended yaml files are now organized as a profile combined with a target, located under the `packages/` directory.  For most users, the simplest approach is to use one of the pre-combined entrypoint files:
+The yaml files are organized as a profile combined with a target, located under the `packages/` directory.  The hardware-specific entrypoint files default to kauf components and the default profile.  The profile and components can be changed using substitutions without having to switch entrypoint files.
+
+For example, to use the minimal profile instead of the default you only need to add the profile substitution:
 
 ```
 substitutions:
   name: bedroom-light
   friendly_name: Bedroom Light
+  profile: minimal
 
 packages:
-  # Uncomment the line that matches your product variant (1MiB or 4MiB flash).
-  # The variant is printed on the label on the back of the switch.
-  # See kauf-rgbs-1m-4m-comparison.md for more ways to identify your variant.
   Kauf.RGBSw: github://KaufHA/kauf-rgb-switch/packages/kauf-srf10-1m.yaml
-  # Kauf.RGBSw: github://KaufHA/kauf-rgb-switch/packages/kauf-srf10-4m.yaml
 
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
 ```
 
-To use a different profile, include a profile and target separately instead of a pre-combined entrypoint file:
+To use stock ESPHome components instead of Kauf custom components simply add the components substitution.  Some functionality may be lost:
 
 ```
 substitutions:
   name: bedroom-light
   friendly_name: Bedroom Light
+  components: stock
 
 packages:
-  profile: github://KaufHA/kauf-rgb-switch/packages/profiles/kauf-minimal.yaml
-  target:  github://KaufHA/kauf-rgb-switch/packages/targets/kauf-srf10-1m-target.yaml
+  Kauf.RGBSw: github://KaufHA/kauf-rgb-switch/packages/kauf-srf10-1m.yaml
 
 wifi:
   ssid: !secret wifi_ssid
@@ -170,27 +175,23 @@ wifi:
 
 ## Profile Options
 
-Profiles are located in `packages/profiles/`.  Kauf profiles include Kauf custom components and stable flash layout.  Stock profiles have no Kauf-specific components.
+***default*** - Full functionality including button automation, light automation, and all configuration entities.
 
-***kauf-default*** - Full Kauf functionality including button automation, light automation, and all configuration entities.  Equivalent to the previous `kauf-rgbs.yaml`.  Use with a `kauf-` target.
+***minimal*** - Basic functionality only: button toggles relay, no light automation, no configuration entities.
 
-***kauf-minimal*** - Kauf components and stable flash layout, but only basic functionality: button toggles relay, no light automation, no configuration entities.  Use with a `kauf-` target.
+## Components Options
 
-***stock-default*** - Full functionality without Kauf custom components.  Use with a `stock-` target.
+***kauf*** - Includes Kauf custom components and stable flash layout.  (default)
 
-***stock-minimal*** - Basic functionality without Kauf custom components.  Use with a `stock-` target.
+***stock*** - Stock ESPHome components only, no Kauf-specific customizations.
 
 ## Target Options
 
-Targets are located in `packages/targets/`.  Kauf targets include stable flash address reservations for Kauf profiles.  Stock targets do not include these reservations.
+The target is selected by which entrypoint file is used.  Targets define hardware-specific configuration such as GPIO pin assignments and flash size.
 
-***kauf-srf10-1m-target*** - ESP8266 1MiB flash (esp01_1m board).  Use with a `kauf-` profile.
+***kauf-srf10-1m*** - ESP8266 1MiB flash (esp01_1m board).
 
-***kauf-srf10-4m-target*** - ESP8266 4MiB flash (esp07s board).  Use with a `kauf-` profile.
-
-***stock-srf10-1m-target*** - ESP8266 1MiB flash (esp01_1m board).  Use with a `stock-` profile.
-
-***stock-srf10-4m-target*** - ESP8266 4MiB flash (esp07s board).  Use with a `stock-` profile.
+***kauf-srf10-4m*** - ESP8266 4MiB flash (esp07s board).
 
 
 # yaml-migration
@@ -199,12 +200,15 @@ The top-level `kauf-rgbs.yaml` and `kauf-rgbs-4m.yaml` files are deprecated in f
 
 **If you are currently using `kauf-rgbs.yaml`**, change the following line in your yaml file:
 
+
+Change this:
 ```
-# change this:
 packages:
   Kauf.RGBSw: github://KaufHA/kauf-rgb-switch/kauf-rgbs.yaml
+```
+to this:
 
-# to this:
+```
 packages:
   Kauf.RGBSw: github://KaufHA/kauf-rgb-switch/packages/kauf-srf10-1m.yaml
 ```
