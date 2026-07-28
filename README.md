@@ -87,6 +87,8 @@ If using the precompiled binary or the default packages in the ESPHome dashboard
 - **Toggle on Double Press** - The UI switch toggles any time the button is double pressed.
 - **Toggle on Hold** - The UI switch toggles any time the button is held.
 
+***Debounce Time*** number entity - Defines how long the button's raw signal must stay steady before being registered as pressed, filtering out spurious presses caused by electrical noise. Defaults to 20ms and can be set as low as 0ms to disable debouncing entirely. Increasing this value adds a matching delay to how quickly a real button press is registered.
+
 
 ## Diagnostic Entities
 

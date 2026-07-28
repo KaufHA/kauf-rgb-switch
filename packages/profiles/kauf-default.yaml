@@ -110,6 +110,12 @@ select:
     forced_addr: 6
 
 
+number:
+  - id: !extend number_debounce
+    forced_hash: 1531874264
+    forced_addr: 108
+
+
 script:
 
   # executes at the start of each blink cycle: syncs prefs on first blink and clears the flag
@@ -142,3 +148,4 @@ script:
 #  58- 69:   Big Off Value Light
 #  70- 81:   Big On Value Light
 #  82-107:   Wi-Fi Credentials
+# 108-109:   Debounce Time Number

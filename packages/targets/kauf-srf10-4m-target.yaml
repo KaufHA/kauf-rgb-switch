@@ -9,7 +9,7 @@ substitutions:
 
 
 esp8266:
-  start_free: 108
+  start_free: 110
 
 
 web_server:

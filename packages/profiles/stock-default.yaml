@@ -48,6 +48,10 @@ substitutions:
   sub_hold_time: 750ms
   sub_button_sensor_duration: 500ms
 
+  # debounce specifications
+  sub_default_debounce: "20"
+  sub_debounce: id(number_debounce).state
+
   # substitutions to control hass entities with press combos
   hass_entity_single_press_toggle:           no.ne
   hass_entity_double_press_toggle:           no.ne
@@ -176,6 +180,8 @@ binary_sensor:
         input: true
         pullup: true
       inverted: true
+    filters:
+      - delayed_on: !lambda return $sub_debounce;
 
     on_press:
         then:
@@ -535,6 +541,26 @@ select:
     entity_category: config
     icon: mdi:toggle-switch-off-outline
     on_value:
+      - script.execute: script_save_changes
+
+
+# https://esphome.io/components/number/index.html
+# https://esphome.io/components/number/template.html
+number:
+  - platform: template
+    name: Debounce Time
+    id: number_debounce
+    entity_category: config
+    optimistic: true
+    restore_value: true
+    min_value: 0
+    max_value: 500
+    step: 1
+    initial_value: $sub_default_debounce
+    unit_of_measurement: ms
+    mode: box
+    disabled_by_default: $disable_entities
+    set_action:
       - script.execute: script_save_changes
 
 
