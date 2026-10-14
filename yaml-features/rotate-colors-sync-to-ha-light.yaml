@@ -246,7 +246,7 @@ script:
                 call->init_data(2);
                 call->add_data("entity_id", "$hass_light_entity");
                 call->add_data("transition", "0");
-                call->init_data_template(0);
+                call->init_data_template(1);
                 call->add_data_template("rgb_color", "[" + esphome::to_string(red) + "," + esphome::to_string(green) + "," + esphome::to_string(blue) + "]");
                 call->init_variables(0);
                 call->play();
@@ -280,9 +280,9 @@ script:
                 call->init_data(2);
                 call->add_data("entity_id", "$hass_light_entity");
                 call->add_data("transition", "0");
-                call->init_data_template(2);
+                call->init_data_template(1);
                 call->add_data_template("rgb_color", "[" + to_string(red) + "," + to_string(green) + "," + to_string(blue) + "]");
-                call->init_variables(2);
+                call->init_variables(0);
                 call->play();
               }
             }
