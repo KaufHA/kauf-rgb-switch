@@ -4,7 +4,7 @@
 #   external_components (KaufHA/common) and kauf_deprecations
 #   wifi forced_addr
 #   web_server product/js_url
-#   blink_first_run logic and restore_from_preferences via sub_blink_pre/post hooks
+#   RAM-backed status-blink state preservation via sub_blink_pre/post hooks
 
 substitutions:
 
@@ -29,6 +29,16 @@ globals:
     type: bool
     restore_value: no
     initial_value: 'true'
+
+  - id: blink_saved_state
+    type: light::LightColorValues
+    restore_value: no
+    initial_value: 'light::LightColorValues()'
+
+  - id: blink_saved_effect
+    type: uint32_t
+    restore_value: no
+    initial_value: '0'
 
 
 # https://esphome.io/components/external_components.html
@@ -118,21 +128,41 @@ number:
 
 script:
 
-  # executes at the start of each blink cycle: syncs prefs on first blink and clears the flag
+  # Save the user-visible light state in RAM before the first status blink.
   - id: script_blink_pre
     then:
       - lambda: |-
           if (id(blink_first_run)) {
-            global_preferences->sync();
+            id(blink_saved_state) = id(small_light).remote_values;
+            id(blink_saved_effect) = id(small_light).get_current_effect_index();
             id(blink_first_run) = false;
           }
 
-  # executes when blink ends (api connected): resets flag and restores saved light state from flash
+  # Restore the exact pre-blink state from RAM when the API connects.
   - id: script_blink_post
     then:
       - lambda: |-
           id(blink_first_run) = true;
-          id(small_light).restore_from_preferences();  // restore saved colors if api is connected
+
+          const auto &saved = id(blink_saved_state);
+          auto call = id(small_light).make_call();
+          call.set_color_mode(saved.get_color_mode());
+          call.set_state(saved.is_on());
+          call.set_brightness(saved.get_brightness());
+          call.set_color_brightness(saved.get_color_brightness());
+          call.set_red(saved.get_red());
+          call.set_green(saved.get_green());
+          call.set_blue(saved.get_blue());
+          call.set_white(saved.get_white());
+          call.set_color_temperature(saved.get_color_temperature());
+          call.set_cold_white(saved.get_cold_white());
+          call.set_warm_white(saved.get_warm_white());
+          if (id(blink_saved_effect) != 0) {
+            call.set_effect(id(blink_saved_effect));
+          }
+          call.set_transition_length(0);
+          call.set_save(false);
+          call.perform();
 
 
 # Current reserved flash memory:

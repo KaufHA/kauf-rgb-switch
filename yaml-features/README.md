@@ -26,10 +26,10 @@ Just compiling in the yaml as described above will allow the RGB Switch's big li
 
 **Home Assistant Light Entity**
 
-To control a light entity with the switch and sync the light entity to the same color through Home Assistant, add the following substitution to define which Home Assistant light entity to sync.
+The **hass_light_entity** substitution (defined in the base profile, see the [top-level README](../README.md#home-assistant-sync-options)) bidirectionally syncs the switch's on/off state with a Home Assistant light entity: pressing the switch turns the light on/off, and turning the light on/off in Home Assistant toggles the switch to match. This yaml file adds on top of that base sync by sending brightness/color/color-temp data along with the on-state push, using the substitutions below, and by cycling that light's color when the switch is held.
 
 ```
-substitions:
+substitutions:
   hass_light_entity: light.kitchen_lights
 ```
 
@@ -64,9 +64,9 @@ The brightness substitutions control the brightness of the synced light entity w
 
 **Color Settings**
 
-Substitutions control the color of the synced light entity when toggled via pressing the RGB Switch's button.  By default, a fixed value of 250 mireds is used, which is 50/50 warm/cold white for the KAUF bulbs.
+Substitutions control the color of the synced light entity when toggled via pressing the RGB Switch's button.  By default, all of these are "none" and no color/color-temp data is sent with the turn-on call, so the light entity keeps whatever color it last had (or adopts the color-cycle selected color, if the light entity's color is tied to a helper that the cycle also writes to).
 
-Any defined value will overwrite the default 250 mired option.  hass_ct_mireds_fixed can be redefined to "none" to turn on the light entity without any indication of color and thereby toggle the light entity to the color-cycle selected color.
+Mireds are no longer supported for color temperature, since Home Assistant has deprecated mired-based color temperature in favor of Kelvin. Use the hass_ct_kelvin_* substitutions instead.
 
 The following options are available, and only one should be used.
 
@@ -76,9 +76,6 @@ The following options are available, and only one should be used.
 - **hass_ct_kelvin_entity** - defines a Home Assistant sensor entity that will be used as the turn-on color temperature with units being Kelvin.
 - **hass_ct_kelvin_entity** and **hass_ct_kelvin_attribute** - defines a Home Assistant entity attribute that will be used as the turn-on color temperature with the units being Kelvin.
 - **hass_ct_kelvin_fixed** - defines a fixed Kelvin value for the turn-on color temperature.
-- **hass_ct_mireds_entity** - defines a Home Assistant sensor entity that will be used as the turn-on color temperature with units being mireds.
-- **hass_ct_mireds_entity** and **hass_ct_mireds_attribute** - defines a Home Assistant entity attribute that will be used as the turn-on color temperature with the units being mireds.
-- **hass_ct_mireds_fixed** - defines a fixed mired value for the turn-on color temperature.
 
 ## hold-for-fan-mode.yaml
 
@@ -125,4 +122,4 @@ The **mode_color** substitution defines a color for the big light when the switc
 
 **Home Assistant Light Entity**
 
-If set, the **hass_light_entity** indicates a light entity for the switch to turn on and off when not in fan mode, instead of just turning itself on and off.  All of the brightness and color temp substitutions described above for rotate-colors-sync-to-ha-light.yaml are also valid for this yaml file.
+The **hass_light_entity** substitution (defined in the base profile, see the [top-level README](../README.md#home-assistant-sync-options)) bidirectionally syncs the switch's on/off state with a Home Assistant light entity whenever the switch is not in fan mode: pressing the switch turns the light on/off, and turning the light on/off in Home Assistant toggles the switch to match. This yaml file adds on top of that base sync by sending brightness/color/color-temp data along with the on-state push, using the same hass_brightness_*, hass_rgb_*, and hass_ct_kelvin_* substitutions described above for rotate-colors-sync-to-ha-light.yaml.

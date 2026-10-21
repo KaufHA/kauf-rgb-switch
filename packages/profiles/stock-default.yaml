@@ -66,6 +66,15 @@ substitutions:
   hass_entity_control_big_light_on_state:    'on'
   hass_entity_control_big_light_off_state:   'off'
 
+  # substitution for a hass entity to bidirectionally sync with ui_switch. despite the name, this can be any
+  # on/off-able entity (switch, light, input_boolean, etc). set to a valid entity_id to have hass turn that
+  # entity on/off whenever ui_switch turns on/off, and to have ui_switch turn on/off whenever that entity does.
+  hass_light_entity: no.ne
+
+  # script that pushes ui_switch's state to hass_light_entity. override to customize the service call,
+  # e.g. to a light.turn_on call with brightness/color data instead of the default generic turn_on/turn_off.
+  sub_hass_sync_push: script_hass_sync_push
+
   # GPIO pin assignments - defined by target file
   sub_button_pin: GPIO13
   sub_relay_pin:  GPIO15
@@ -91,6 +100,13 @@ globals:
     type: int
     restore_value: no
     initial_value: '0'
+
+    # true while ui_switch is being toggled in response to a hass_light_entity state change,
+    # so that the push back to hass (which would otherwise echo) can be skipped.
+  - id: syncing_from_ha
+    type: bool
+    restore_value: no
+    initial_value: 'false'
 
 
 # https://esphome.io/components/esphome.html
@@ -330,6 +346,11 @@ switch:
               id(relay).turn_on(); }
         - script.execute: copy_vals
         - script.execute: script_save_changes
+        - if:
+            condition:    # push to hass entity if one is configured and this didn't originate from hass
+              lambda: return ( !id(syncing_from_ha) && (strcmp("$hass_light_entity","no.ne") != 0) );
+            then:
+              - script.execute: $sub_hass_sync_push
         - script.execute: $sub_on_turn_on
 
     on_turn_off:
@@ -342,6 +363,11 @@ switch:
               id(relay).turn_off(); }
         - script.execute: copy_vals
         - script.execute: script_save_changes
+        - if:
+            condition:    # push to hass entity if one is configured and this didn't originate from hass
+              lambda: return ( !id(syncing_from_ha) && (strcmp("$hass_light_entity","no.ne") != 0) );
+            then:
+              - script.execute: $sub_hass_sync_push
         - script.execute: $sub_on_turn_off
 
   - platform: template
@@ -727,6 +753,25 @@ script:
             data:
               entity_id: $hass_entity_release_without_hold_toggle
 
+    # default sub_hass_sync_push implementation: pushes ui_switch's current state to hass_light_entity
+    # using the generic turn_on/turn_off services. override sub_hass_sync_push to customize (e.g. to send
+    # light.turn_on with brightness/color data instead).
+  - id: script_hass_sync_push
+    then:
+      if:
+        condition:
+          lambda: return id(ui_switch).state;
+        then:
+          homeassistant.service:
+            service: homeassistant.turn_on
+            data:
+              entity_id: $hass_light_entity
+        else:
+          homeassistant.service:
+            service: homeassistant.turn_off
+            data:
+              entity_id: $hass_light_entity
+
 
 # https://esphome.io/components/button/index.html
 button:
@@ -759,14 +804,28 @@ text_sensor:
     id: hass_small_light_state
     entity_id: $hass_entity_control_small_light
     on_value:
-      - delay: 1ms
+      - delay: 0ms
       - script.execute: copy_vals
   - platform: homeassistant
     id: hass_big_light_state
     entity_id: $hass_entity_control_big_light
     on_value:
-      - delay: 1ms
+      - delay: 0ms
       - script.execute: copy_vals
+
+    # watches hass_light_entity and toggles ui_switch to match whenever it changes in hass.
+  - platform: homeassistant
+    id: hass_sync_ui_switch_state
+    entity_id: $hass_light_entity
+    on_value:
+      - delay: 0ms
+      - if:
+          condition:
+            lambda: return ( ((x == "on") && !id(ui_switch).state) || ((x == "off") && id(ui_switch).state) );
+          then:
+            - lambda: id(syncing_from_ha) = true;
+            - switch.toggle: ui_switch
+            - lambda: id(syncing_from_ha) = false;
 
 
 # https://esphome.io/components/sensor/index.html

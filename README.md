@@ -139,6 +139,54 @@ When using the default yaml packages in the ESPHome dashboard, you can configure
 
 ***sub_button_sensor_duration*** - A length of tiem defining how long the single press and double press binary sensors will be high for whenever triggered.
 
+# Home Assistant Sync Options
+
+These substitutions tie the switch into Home Assistant entities without needing to write any Home Assistant automations. All of them are optional, configured purely through substitutions, and disabled by default.
+
+## Bidirectional On/Off Sync
+
+***hass_light_entity*** - Set to a Home Assistant entity_id to bidirectionally sync it with the switch's on/off state. Despite the name, this can be any on/off-able entity (light, switch, input_boolean, etc). Turning the switch on or off (via the button, the UI switch entity, or an automation) turns that Home Assistant entity on/off, and turning that entity on/off in Home Assistant toggles the switch to match.
+
+```
+substitutions:
+  hass_light_entity: light.kitchen_lights
+```
+
+By default this sends a generic `homeassistant.turn_on`/`homeassistant.turn_off` service call. The [rotate-colors-sync-to-ha-light.yaml](yaml-features/README.md#rotate-colors-sync-to-ha-lightyaml) and [hold-for-fan-mode.yaml](yaml-features/README.md#hold-for-fan-modeyaml) yaml features both build on this same mechanism, sending a `light.turn_on` call with brightness/color/color-temp data instead.
+
+***Note on sync behavior:*** Home Assistant is treated as the source of truth on boot and whenever the API reconnects — the switch pulls hass_light_entity's current state at that point and adopts it. If the switch changes state while disconnected from Home Assistant (e.g. via the physical button while Wi-Fi is down), that change is not queued and will be overwritten once the connection to Home Assistant is restored.
+
+***sub_hass_sync_push*** - Advanced. Defines the script that pushes the switch's on/off state to hass_light_entity. Override this to customize the outgoing service call (for example, to add brightness/color data), instead of using the default generic turn_on/turn_off.
+
+## Toggle a Home Assistant Entity on Button Press
+
+These substitutions call Home Assistant's `homeassistant.toggle` service for a given entity whenever the corresponding button action occurs. They work independently of, and in addition to, hass_light_entity and the switch's normal on/off behavior.
+
+***hass_entity_single_press_toggle*** - Toggles this Home Assistant entity when the button is single pressed.
+
+***hass_entity_double_press_toggle*** - Toggles this Home Assistant entity when the button is double pressed.
+
+***hass_entity_hold_toggle*** - Toggles this Home Assistant entity when the button is held.
+
+***hass_entity_release_without_hold_toggle*** - Toggles this Home Assistant entity when the button is released after a press that didn't reach the hold threshold.
+
+```
+substitutions:
+  hass_entity_double_press_toggle: switch.porch_light
+```
+
+## Sync a Light to a Home Assistant Entity's State
+
+Rather than following the switch's own on/off state, the small light and/or big light can instead be driven by the state of a separate Home Assistant entity.
+
+***hass_entity_control_small_light*** - Set to a Home Assistant entity_id to have the small light follow that entity's state instead of the switch's on/off state.
+
+***hass_entity_control_small_light_on_state*** / ***hass_entity_control_small_light_off_state*** - The state strings that count as "on" and "off" for hass_entity_control_small_light. Default to `on` and `off`.
+
+***hass_entity_control_big_light*** - Set to a Home Assistant entity_id to have the big light follow that entity's state instead of the switch's on/off state.
+
+***hass_entity_control_big_light_on_state*** / ***hass_entity_control_big_light_off_state*** - The state strings that count as "on" and "off" for hass_entity_control_big_light. Default to `on` and `off`.
+
 # Package Structure
 
 The yaml files are organized as a profile combined with a target, located under the `packages/` directory.  The hardware-specific entrypoint files default to kauf components and the default profile.  The profile and components can be changed using substitutions without having to switch entrypoint files.
