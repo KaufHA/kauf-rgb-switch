@@ -45,6 +45,10 @@ There are two different substitutions to change the hold-time for color changes.
 
 By default, this yaml file will change the relay configuration to always on at boot.  This is because the yaml file is designed to control smart lights that always stay powered.  Setting the stay_switched substitution to true will keep the relay configured as switched at boot.
 
+**WiFi Reset Hold**
+
+Normally, holding the button for 30 seconds clears the WiFi credentials and starts the setup AP.  Holding the button to cycle colors can easily pass 30 seconds, so this yaml file disables that reset by default.  Set the **sub_wifi_reset_script** substitution to script_wifi_reset to re-enable it.
+
 **color_0 . . . color_11**
 
 Defines 12 colors that the RGB Switch will cycle through when the button is held.  By default, simply moves around the color wheel like the hours on a clock.  Colors can be customized by redefining the substitutions.  Values should be three comma-separated integers 'r,g,b'.

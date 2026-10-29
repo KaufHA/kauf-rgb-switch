@@ -69,12 +69,29 @@ substitutions:
   sub_toggle_check: script_dont_toggle
   sub_hass_sync_push: script_hass_sync_push_fan_light
 
+  # light.turn_on data keys have to be fixed at compile time, so pick which optional brightness and
+  # color/temp keys are sent based on the hass_* substitutions above.
+  sub_hass_has_bri: >-
+    ${ 'false' if (hass_brightness_entity == 'none' and hass_brightness_fixed == 'none' and hass_brightness_pct_entity == 'none' and hass_brightness_pct_fixed == 'none') else 'true' }
+  sub_hass_has_color: >-
+    ${ 'false' if (hass_ct_kelvin_fixed == 'none' and hass_ct_kelvin_entity == 'none' and hass_rgb_fixed == 'none' and hass_rgb_entity == 'none') else 'true' }
+  sub_hass_bri_key: >-
+    ${ 'brightness' if (hass_brightness_entity != 'none' or hass_brightness_fixed != 'none') else 'brightness_pct' }
+  sub_hass_color_key: >-
+    ${ 'color_temp_kelvin' if (hass_ct_kelvin_fixed != 'none' or hass_ct_kelvin_entity != 'none') else 'rgb_color' }
+
 
 globals:
   - id: fan_mode
     type: boolean
     restore_value: no
     initial_value: 'false'
+
+    # fan percentage sent to home assistant by script_on_press
+  - id: fan_speed_target
+    type: int
+    restore_value: no
+    initial_value: '0'
 
 
 text_sensor:
@@ -191,24 +208,8 @@ script:
             fan_speed = $speed_1_prcnt;
           }
 
-          // perform home assistant service call to set fan speed
-          auto *api_server = esphome::api::global_api_server;
-          if (api_server != nullptr) {
-            if ( api_server->is_connected() ) {
-              auto *call = new esphome::api::HomeAssistantServiceCallAction<>(api_server, false);
-              if ( fan_speed == 0) {
-                call->set_service("fan.turn_off");
-                call->init_data(1);
-                call->add_data("entity_id", "$hass_fan_entity");
-              } else {
-                call->set_service("fan.turn_on");
-                call->init_data(2);
-                call->add_data("entity_id", "$hass_fan_entity");
-                call->add_data("percentage", to_string(fan_speed));
-              }
-              call->play();
-            }
-          }
+          // save fan speed for the home assistant service call below
+          id(fan_speed_target) = fan_speed;
 
           // perform call to change small light color to speed color
           auto call = id(small_light).turn_on();
@@ -222,6 +223,17 @@ script:
 
           call.set_transition_length(0);
           call.perform();
+
+        # perform home assistant service call to set fan speed.  percentage 0 turns the fan off.
+      - if:
+          condition:
+            lambda: return id(fan_mode);
+          then:
+            - homeassistant.service:
+                service: fan.set_percentage
+                data:
+                  entity_id: $hass_fan_entity
+                  percentage: !lambda return id(fan_speed_target);
 
   - id: mode_timeout
     mode: restart
@@ -250,103 +262,107 @@ script:
           condition:
             lambda: return !id(ui_switch).state;
           then:
-            - lambda: |-
-                auto *api_server = esphome::api::global_api_server;
-                if (api_server != nullptr) {
-                  if ( api_server->is_connected() ) {
-                    auto *call = new esphome::api::HomeAssistantServiceCallAction<>(api_server, false);
-                    call->set_service("light.turn_off");
-                    call->init_data(1);
-                    call->add_data("entity_id", "$hass_light_entity");
-                    call->init_data_template(2);
-                    call->init_variables(2);
-                    call->play();
-                  }
-                }
+            - homeassistant.service:
+                service: light.turn_off
+                data:
+                  entity_id: $hass_light_entity
+
+        # one turn_on call per combination of optional brightness and color/temp data, since the data
+        # keys are fixed at compile time.  sub_hass_has_bri and sub_hass_has_color select which one runs.
       - if:
           condition:
-            lambda: return id(ui_switch).state;
+            lambda: return id(ui_switch).state && !$sub_hass_has_bri && !$sub_hass_has_color;
           then:
-            - lambda: |-
-                auto *api_server = esphome::api::global_api_server;
-                if (api_server != nullptr) {
-                  if ( api_server->is_connected() ) {
-                    auto *call = new esphome::api::HomeAssistantServiceCallAction<>(api_server, false);
-                    call->set_service("light.turn_on");
-                    call->init_data(3);
-                    call->init_data_template(2);
-                    call->init_variables(0);
+            - homeassistant.service:
+                service: light.turn_on
+                data:
+                  entity_id: $hass_light_entity
 
-                    call->add_data("entity_id", "$hass_light_entity");
-
-                    ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-                    // add brightness if set
-
+      - if:
+          condition:
+            lambda: return id(ui_switch).state && $sub_hass_has_bri && !$sub_hass_has_color;
+          then:
+            - homeassistant.service:
+                service: light.turn_on
+                data:
+                  entity_id: $hass_light_entity
+                data_template:
+                  ${sub_hass_bri_key}: &hass_bri_value !lambda |-
                     // brightness entity set, attribute not set
                     if ( (strcmp("$hass_brightness_entity","none")!=0) && (strcmp("$hass_brightness_attribute","none")==0) ) {
-                      call->add_data_template("brightness", "{{ states(\"$hass_brightness_entity\") }}");
+                      return "{{ states(\"$hass_brightness_entity\") }}";
                     }
 
                     // brightness entity and attribute both set
                     else if ( (strcmp("$hass_brightness_entity","none")!=0) && (strcmp("$hass_brightness_attribute","none")!=0) ) {
-                      call->add_data_template("brightness", "{{ state_attr(\"$hass_brightness_entity\",\"$hass_brightness_attribute\") }}");
+                      return "{{ state_attr(\"$hass_brightness_entity\",\"$hass_brightness_attribute\") }}";
                     }
 
                     // fixed brightness set
                     else if ( strcmp("$hass_brightness_fixed","none")!=0 ) {
-                      call->add_data("brightness", "$hass_brightness_fixed");
+                      return "$hass_brightness_fixed";
                     }
 
                     // brightness_pct entity set, attribute not set
                     else if ( (strcmp("$hass_brightness_pct_entity","none")!=0) && (strcmp("$hass_brightness_pct_attribute","none")==0) ) {
-                      call->add_data_template("brightness_pct", "{{ states(\"$hass_brightness_pct_entity\") }}");
+                      return "{{ states(\"$hass_brightness_pct_entity\") }}";
                     }
 
                     // brightness_pct entity and attribute both set
                     else if ( (strcmp("$hass_brightness_pct_entity","none")!=0) && (strcmp("$hass_brightness_pct_attribute","none")!=0) ) {
-                      call->add_data_template("brightness_pct", "{{ state_attr(\"$hass_brightness_pct_entity\",\"$hass_brightness_pct_attribute\") }}");
+                      return "{{ state_attr(\"$hass_brightness_pct_entity\",\"$hass_brightness_pct_attribute\") }}";
                     }
 
                     // fixed brightness_pct set
-                    else if ( strcmp("$hass_brightness_pct_fixed","none")!=0 ) {
-                      call->add_data("brightness_pct", "$hass_brightness_pct_fixed");
-                    }
+                    return "$hass_brightness_pct_fixed";
 
-
-                    ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-                    // add color/temp if set
-
+      - if:
+          condition:
+            lambda: return id(ui_switch).state && !$sub_hass_has_bri && $sub_hass_has_color;
+          then:
+            - homeassistant.service:
+                service: light.turn_on
+                data:
+                  entity_id: $hass_light_entity
+                data_template:
+                  ${sub_hass_color_key}: &hass_color_value !lambda |-
                     // fixed kelvin set
                     if ( strcmp("$hass_ct_kelvin_fixed","none") != 0 ) {
-                      call->add_data("color_temp_kelvin", "$hass_ct_kelvin_fixed");
+                      return "$hass_ct_kelvin_fixed";
                     }
 
                     // kelvin entity set, attribute not set
                     else if ( (strcmp("$hass_ct_kelvin_entity","none")!=0) && (strcmp("$hass_ct_kelvin_attribute","none")==0) ) {
-                      call->add_data_template("color_temp_kelvin", "{{ states(\"$hass_ct_kelvin_entity\") }}");
+                      return "{{ states(\"$hass_ct_kelvin_entity\") }}";
                     }
 
                     // kelvin entity and attribute both set
                     else if ( (strcmp("$hass_ct_kelvin_entity","none")!=0) && (strcmp("$hass_ct_kelvin_attribute","none")!=0) ) {
-                      call->add_data_template("color_temp_kelvin", "{{ state_attr(\"$hass_ct_kelvin_entity\",\"$hass_ct_kelvin_attribute\") }}");
+                      return "{{ state_attr(\"$hass_ct_kelvin_entity\",\"$hass_ct_kelvin_attribute\") }}";
                     }
 
                     // fixed rgb set
                     else if ( strcmp("$hass_rgb_fixed","none")!=0 ) {
-                      call->add_data_template("rgb_color", "$hass_rgb_fixed");
+                      return "$hass_rgb_fixed";
                     }
 
                     // rgb entity set, attribute not set
                     else if ( (strcmp("$hass_rgb_entity","none")!=0) && (strcmp("$hass_rgb_attribute","none")==0) ) {
-                      call->add_data_template("rgb_color", "{{ states(\"$hass_rgb_entity\") }}");
+                      return "{{ states(\"$hass_rgb_entity\") }}";
                     }
 
                     // rgb entity and attribute both set
-                    else if ( (strcmp("$hass_rgb_entity","none")!=0) && (strcmp("$hass_rgb_attribute","none")!=0) ) {
-                      call->add_data_template("rgb_color", "{{ state_attr(\"$hass_rgb_entity\",\"$hass_rgb_attribute\") }}");
-                    }
+                    return "{{ state_attr(\"$hass_rgb_entity\",\"$hass_rgb_attribute\") }}";
 
-                    call->play();
-                  }
-                }
+      - if:
+          condition:
+            lambda: return id(ui_switch).state && $sub_hass_has_bri && $sub_hass_has_color;
+          then:
+            - homeassistant.service:
+                service: light.turn_on
+                data:
+                  entity_id: $hass_light_entity
+                data_template:
+                  ${sub_hass_bri_key}: *hass_bri_value
+                  ${sub_hass_color_key}: *hass_color_value
 
